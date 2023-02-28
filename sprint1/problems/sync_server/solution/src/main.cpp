@@ -30,24 +30,39 @@ struct ContentType {
     // При необходимости внутрь ContentType можно добавить и другие типы контента
 };
 
+typedef enum : uint8_t {
+	GET,
+	HEAD,
+	OTHER,
+} requests_e;
+
 // Создаёт StringResponse с заданными параметрами
 StringResponse MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
                                   bool keep_alive,
+								  requests_e rqs_tp = OTHER,
                                   std::string_view content_type = ContentType::TEXT_HTML) {
     StringResponse response(status, http_version);
     response.set(http::field::content_type, content_type);
-    response.body() = body;
+	if ( rqs_tp == OTHER )
+	{
+		response.set(http::field::allow, "GET, HEAD"sv);
+	}
+	if ( rqs_tp != HEAD )
+	{
+		response.body() = body;
+	}
     response.content_length(body.size());
     response.keep_alive(keep_alive);
     return response;
 }
 
 StringResponse HandleRequest(StringRequest&& req) {
-    const auto text_response = [&req](http::status status, std::string_view text) {
-        return MakeStringResponse(status, text, req.version(), req.keep_alive());
+    const auto text_response = [&req](http::status status, std::string_view text, requests_e rqs_tp) {
+        return MakeStringResponse(status, text, req.version(), req.keep_alive(), rqs_tp);
     };
 
 	std::pair<http::status, std::string_view> res{};
+	requests_e rqs {OTHER};
 	switch (req.method()) 
 	{
 		case http::verb::get:
@@ -57,6 +72,7 @@ StringResponse HandleRequest(StringRequest&& req) {
 			trg.remove_prefix(std::min(trg.find_first_not_of("/"),trg.size()));
 			std::string answer = "Hello, " + std::string{trg};
 			res.second = answer;
+			rqs = GET;
 // 						 ""sv
 // 						 req.target();
 			break;
@@ -64,20 +80,23 @@ StringResponse HandleRequest(StringRequest&& req) {
 		case http::verb::head:
 		{
 			res.first = http::status::ok;
-// 			std::string_view trg = req.target();
-// 			trg.remove_prefix(std::min(trg.find_first_not_of("/"),trg.size()));
-// 			std::string answer = "Hello, " + std::string{trg};
-			res.second = ""sv"";
+			std::string_view trg = req.target();
+			trg.remove_prefix(std::min(trg.find_first_not_of("/"),trg.size()));
+			std::string answer = "Hello, " + std::string{trg};
+			res.second = answer;
+			rqs = HEAD;
 			break;
 		}
 		default:
 		{
 			res.first = http::status::method_not_allowed;
+			res.second = "Invalid method";
+			rqs = OTHER;
 			break;
 		}
 	}
     // Здесь можно обработать запрос и сформировать ответ, но пока всегда отвечаем: Hello
-    return text_response(res.first, res.second);
+    return text_response(res.first, res.second, rqs);
 } 
 
 std::optional<StringRequest> ReadRequest(tcp::socket& socket, beast::flat_buffer& buffer) {
