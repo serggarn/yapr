@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 
 # Проект называется Hello и написан на C++
-project(Hello CXX)
+project(hello CXX)
 # Исходый код будет компилироваться с поддержкой стандарта С++ 20
 set(CMAKE_CXX_STANDARD 20)
 
