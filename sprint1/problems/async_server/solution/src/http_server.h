@@ -9,14 +9,15 @@
 
 namespace http_server {
 
+namespace beast = boost::beast;
+using namespace std::literals; 
+
 namespace net = boost::asio;
 using tcp = net::ip::tcp;
 namespace sys = boost::system;
-namespace beast = boost::beast;
 namespace http = beast::http;
-using namespace std::literals; 
 
-void ReportError(beast::error_code ec, std::string_view what) {
+static void ReportError(beast::error_code ec, std::string_view what) {
     std::cerr << what << ": "sv << ec.message() << std::endl;
 }
 
