@@ -5,7 +5,7 @@
 namespace json = boost::json;
 
 namespace http_handler {
-	void RequestHandler::MapsToStr(std::string_view& answ) {
+	void RequestHandler::MapsToStr(std::string& answ) {
 		json::array result;
 		for (auto const& map : game_.GetMaps() ) {
 			json::object js_map;
@@ -19,7 +19,7 @@ namespace http_handler {
 		std::cout << json::serialize(result)<<std::endl << answ<<std::endl;
 	}
 	
-	void RequestHandler::MapToStr(const std::string_view map_id, std::string_view &answ) {
+	void RequestHandler::MapToStr(const std::string_view map_id, std::string& answ) {
 		auto id = model::Map::Id{std::string(map_id)};
 		auto map = game_.FindMap(id);
 		std::cout << (map == nullptr) <<std::endl;

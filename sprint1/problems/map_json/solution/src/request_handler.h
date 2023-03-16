@@ -69,7 +69,8 @@ public:
 		std::pair<http::status, std::string_view> res{};
 // 		http::response<http::string_body> res; // http::basic_fields<Allocator>> res;
 		requests_e rqs {OTHER};
-		std::cout << req.method() <<std::endl;
+		std::cout << req.method() <<std::endl;std::string are;
+		std::string answer;
 		switch (req.method()) 
 		{
 			case http::verb::get:
@@ -78,12 +79,15 @@ public:
 				std::string_view trg = req.target();
 // 				trg.remove_prefix(std::min(trg.find_first_not_of("/"sv),trg.size()));
 				
-				std::string_view answer;
 				std::cout << req.target() << UriType::URI_MAPS << " tqrg: " << (req.target() == UriType::URI_MAPS) <<std::endl;
 				std::cout << "npos? " << (trg.find(UriType::URI_MAPS) != ""sv.npos) <<std::endl;
 				if ( trg.starts_with(UriType::URI_MAPS) ) {
-					if ( trg == UriType::URI_MAPS )
+					if ( trg == UriType::URI_MAPS ) {
+						
 						MapsToStr(answer);
+						
+// 					res.second = are;
+					std::cout << "are: " << are << "; " << res.second <<std::endl;}
 					else {
 	// 					auto map_id = trg.remove_prefix(trg.find_first_not_of("/"sv));
 						auto map_id = trg.substr(UriType::URI_MAPS.size());
@@ -125,8 +129,8 @@ public:
 private:
     model::Game& game_;
 	
-	void MapsToStr(std::string_view &answ);
-	void MapToStr(const std::string_view map_id, std::string_view &answ);
+	void MapsToStr(std::string& answ);
+	void MapToStr(const std::string_view map_id, std::string& answ);
 };
 
 }  // namespace http_handler
