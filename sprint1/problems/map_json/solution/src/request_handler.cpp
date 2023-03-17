@@ -66,7 +66,7 @@ namespace http_handler {
 		}
 		result["offices"] = jsn_ofcs;
 		answ = json::serialize(result);
-// 		std::cout << json::serialize(result)<<std::endl << answ<<std::endl;
+// 		std::cout << result<<std::endl << answ<<std::endl;
 		return 0;
 	}
 }  // namespace http_handler

@@ -22,7 +22,7 @@ model::Game LoadGame(const std::filesystem::path& json_path) {
 	for ( auto const& jsn_map : jsn_maps ) {
 		auto jsn_id = jsn_map.as_object().at("id").as_string().c_str();
 		auto jsn_name = jsn_map.as_object().at("name").as_string().c_str();
-// 		std::cout << "map:" << jsn_id <<std::endl;
+// 		std::t << "map:" << jsn_id <<std::endl;
 		
 // 		std::cout << "map:" << json::serialize(jsn_id) <<std::endl;
 		model::Map map (model::Map::Id{jsn_id}, jsn_name);
