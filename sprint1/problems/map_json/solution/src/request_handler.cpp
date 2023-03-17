@@ -11,18 +11,19 @@ namespace http_handler {
 			json::object js_map;
 			auto id = map.GetId();
 			js_map["id"] = *id;
-			std::cout << *id <<std::endl;
+// 			std::cout << *id <<std::endl;
 			js_map["name"] = map.GetName();
 			result.push_back(js_map);
 		}
 		answ = json::serialize(result);
-		std::cout << json::serialize(result)<<std::endl << answ<<std::endl;
+// 		std::cout << json::serialize(result)<<std::endl << answ<<std::endl;
 	}
 	
-	void RequestHandler::MapToStr(const std::string_view map_id, std::string& answ) {
+	int RequestHandler::MapToStr(const std::string_view map_id, std::string& answ) {
 		auto id = model::Map::Id{std::string(map_id)};
 		auto map = game_.FindMap(id);
-		std::cout << (map == nullptr) <<std::endl;
+		if ( map == nullptr )
+			return 1;
 		json::object result;
 		result["id"] = *(map->GetId());
 		result["name"] = map->GetName();
@@ -65,6 +66,7 @@ namespace http_handler {
 		}
 		result["offices"] = jsn_ofcs;
 		answ = json::serialize(result);
-		std::cout << json::serialize(result)<<std::endl << answ<<std::endl;
+// 		std::cout << json::serialize(result)<<std::endl << answ<<std::endl;
+		return 0;
 	}
 }  // namespace http_handler

@@ -1,6 +1,7 @@
 #pragma once
 #include "http_server.h"
 #include "model.h"
+#include <boost/json.hpp>
 
 namespace http_handler {
 namespace beast = boost::beast;
@@ -8,6 +9,7 @@ namespace http = beast::http;
 using StringResponse = http::response<http::string_body>; 
 
 using namespace std::literals; 
+namespace json = boost::json;
 
 class RequestHandler {
 public:
@@ -35,7 +37,8 @@ public:
 	
 	struct UriType {
 		UriType() = delete;
-		constexpr static std::string_view URI_MAPS = "/api/v1/maps"sv;
+		constexpr static std::string_view URI_START = "/api/";
+		constexpr static std::string_view URI_MAPS = "/api/v1/maps";
 	};
 	
 	// Создаёт StringResponse с заданными параметрами
@@ -53,7 +56,7 @@ public:
 		{
 			response.body() = body;
 		}
-		std::cout << "Body: " << body << std::endl;
+// 		std::cout << "Body: " << body << std::endl;
 		response.content_length(body.size());
 		response.keep_alive(keep_alive);
 		return response;
@@ -69,7 +72,7 @@ public:
 		std::pair<http::status, std::string_view> res{};
 // 		http::response<http::string_body> res; // http::basic_fields<Allocator>> res;
 		requests_e rqs {OTHER};
-		std::cout << req.method() <<std::endl;std::string are;
+// 		std::cout << req.method() <<std::endl;std::string are;
 		std::string answer;
 		switch (req.method()) 
 		{
@@ -79,25 +82,40 @@ public:
 				std::string_view trg = req.target();
 // 				trg.remove_prefix(std::min(trg.find_first_not_of("/"sv),trg.size()));
 				
-				std::cout << req.target() << UriType::URI_MAPS << " tqrg: " << (req.target() == UriType::URI_MAPS) <<std::endl;
-				std::cout << "npos? " << (trg.find(UriType::URI_MAPS) != ""sv.npos) <<std::endl;
+// 				std::cout << req.target() << UriType::URI_MAPS << " tqrg: " << (req.target() == UriType::URI_MAPS) <<std::endl;
+// 				std::cout << "npos? " << (trg.find(UriType::URI_MAPS) != ""sv.npos) <<std::endl;
 				if ( trg.starts_with(UriType::URI_MAPS) ) {
 					if ( trg == UriType::URI_MAPS ) {
 						
 						MapsToStr(answer);
 						
 // 					res.second = are;
-					std::cout << "are: " << are << "; " << res.second <<std::endl;}
-					else {
+// 					std::cout << "are: " << are << "; " << res.second <<std::endl;
+					}
+					else  {
 	// 					auto map_id = trg.remove_prefix(trg.find_first_not_of("/"sv));
 						auto map_id = trg.substr(UriType::URI_MAPS.size());
-						std::cout << trg << "; " << (trg.find_first_not_of(UriType::URI_MAPS))<<std::endl;
+// 						std::cout << trg << "; " << (trg.find_first_not_of(UriType::URI_MAPS))<<std::endl;
 						map_id.remove_prefix(std::min(map_id.find_first_not_of("/"), map_id.size()));
-						std::cout << "map_id: " << map_id <<std::endl;
-						MapToStr(map_id, answer);
+// 						std::cout << "map_id: " << map_id <<std::endl;
+						if ( MapToStr(map_id, answer) != 0 )
+						{
+							// карту не нашли
+							res.first = http::status::not_found;
+							json::object obj;
+							obj["code"] = "mapNotFound";
+							obj["message"] = "Map not found";
+							answer = json::serialize(obj);
+						}
 					}
+				} else if ( trg.starts_with(UriType::URI_START) ) {
+						res.first = http::status::bad_request;
+						json::object obj;
+						obj["code"] = "badRequest";
+						obj["message"] = "Bad request";
+						answer = json::serialize(obj);					
 				}
-				std::cout << "answer: " << answer <<std::endl;
+// 				std::cout << "answer: " << answer <<std::endl;
 				res.second = answer;
 				rqs = GET;
 	// 						 ""sv
@@ -122,7 +140,7 @@ public:
 				break;
 			}
 		}
-		std::cout << "res.second " << res.second << std::endl;
+// 		std::cout << "res.second " << res.second << std::endl;
 		send(MakeStringResponse(res.first, res.second, req.version(), req.keep_alive(), rqs));
     }
 
@@ -130,7 +148,7 @@ private:
     model::Game& game_;
 	
 	void MapsToStr(std::string& answ);
-	void MapToStr(const std::string_view map_id, std::string& answ);
+	int MapToStr(const std::string_view map_id, std::string& answ);
 };
 
 }  // namespace http_handler
