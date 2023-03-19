@@ -41,6 +41,7 @@ public:
 	// Возвращает true, если каталог p содержится внутри base.
 	bool IsSubPath(fs::path path, fs::path base) const;
 	std::string_view GetContentType(std::string_view path);
+	const std::string_view defaultFile = "index.html"sv;
 	
 private:
 	fs::path base_path;

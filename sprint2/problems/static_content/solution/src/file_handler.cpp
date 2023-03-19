@@ -28,6 +28,8 @@ std::pair<http::status, std::string>  Files::GetPath(std::string_view path) cons
 		res.first = http::status::bad_request;
 		return res;
 	}
+	if ( fs::is_directory(abs_path) )
+		abs_path /= fs::path{defaultFile};
 	std::cout << "issub ok " << abs_path.c_str() <<std::endl;
 	if ( not fs::exists(abs_path) )
 		res.first = http::status::not_found;
