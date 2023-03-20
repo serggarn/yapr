@@ -38,7 +38,7 @@ protected:
     
     using HttpRequest = http::request<http::string_body>;
 
-    ~SessionBase() = default;
+    virtual ~SessionBase() = default;
 	
     template <typename Body, typename Fields>
     void Write(http::response<Body, Fields>&& response) {
@@ -57,47 +57,13 @@ private:
     beast::flat_buffer buffer_;
     HttpRequest request_;
 
-	void Read() {
-        using namespace std::literals;
-        // Очищаем запрос от прежнего значения (метод Read может быть вызван несколько раз)
-        request_ = {};
-        stream_.expires_after(30s);
-        // Считываем request_ из stream_, используя buffer_ для хранения считанных данных
-        http::async_read(stream_, buffer_, request_,
-                         // По окончании операции будет вызван метод OnRead
-                         beast::bind_front_handler(&SessionBase::OnRead, GetSharedThis()));
-    }
+	void Read();
 
-    void OnRead(beast::error_code ec, [[maybe_unused]] std::size_t bytes_read) {
-        using namespace std::literals;
-        if (ec == http::error::end_of_stream) {
-            // Нормальная ситуация - клиент закрыл соединение
-            return Close();
-        }
-        if (ec) {
-            return ReportError(ec, "read"sv);
-        }
-        HandleRequest(std::move(request_));
-    }
+    void OnRead(beast::error_code ec, [[maybe_unused]] std::size_t bytes_read);
     
-	void OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written) {
-        if (ec) {
-            return ReportError(ec, "write"sv);
-        }
-
-        if (close) {
-            // Семантика ответа требует закрыть соединение
-            return Close();
-        }
-
-        // Считываем следующий запрос
-        Read();
-    }
+	void OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written);
     
-    void Close() {
-        beast::error_code ec;
-        stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
-    }
+    void Close();
 
     // Обработку запроса делегируем подклассу
     virtual void HandleRequest(HttpRequest&& request) = 0;
@@ -182,8 +148,6 @@ private:
 
     // Метод socket::async_accept создаст сокет и передаст его передан в OnAccept
     void OnAccept(sys::error_code ec, tcp::socket socket) {
-        using namespace std::literals;
-
         if (ec) {
             return ReportError(ec, "accept"sv);
         }
