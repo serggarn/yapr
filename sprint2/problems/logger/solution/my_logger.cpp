@@ -6,9 +6,10 @@
 namespace cr = std::chrono;
 std::string Logger::GetFileTimeStamp() const {
 	std::stringstream ss;
+// 	std::lock_guard lk(mut_ts);
 	auto now = GetTime();
 	const auto t_c = std::chrono::system_clock::to_time_t(now);
-    ss << std::put_time(std::localtime(&t_c), "%Y_%m_%d");
+    ss << std::put_time(std::gmtime(&t_c), "%Y_%m_%d");
 	return ss.str();
 }
 
