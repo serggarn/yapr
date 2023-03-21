@@ -63,7 +63,7 @@ public:
 private:
     std::optional<std::chrono::system_clock::time_point> manual_ts_;
 	std::mutex mut_ts, mut_write;
-	static constexpr std::string_view base_path = "./"sv;
+	static constexpr std::string_view base_path = "/var/log/"sv;
 	static constexpr std::string_view file_name = "sample_log_"sv;
 	static constexpr std::string_view extension = ".log"sv;
 };
