@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.16)
 
 project(game_server CXX)
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_BUILD_TYPE Debug)
 
 add_compile_definitions(BOOST_BEAST_USE_STD_STRING_VIEW)
 
@@ -11,6 +10,7 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 	message(STATUS, "conan install... ")
 # 	execute_process(COMMAND cd ${CMAKE_BINARY_DIR})
 	exec_program(conan ${CMAKE_BINARY_DIR} ARGS install .. -s compiler.libcxx=libstdc++11 -s build_type=Debug)
+	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 # обратите внимание на аргумент TARGETS у команды conan_basic_setup
