@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.16)
 project(game_server CXX)
 set(CMAKE_CXX_STANDARD 20)
 
-add_compile_definitions(BOOST_BEAST_USE_STD_STRING_VIEW)
 
 # Сгенерируем конфигурацию, если нет
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -16,6 +15,9 @@ endif()
 # обратите внимание на аргумент TARGETS у команды conan_basic_setup
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
+
+add_compile_definitions(BOOST_BEAST_USE_STD_STRING_VIEW)
+add_compile_definitions(BOOST_JSON_USE_STD_STRING_VIEW)
 
 # find_package(Boost 1.78.0 REQUIRED)
 # if(Boost_FOUND)

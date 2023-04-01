@@ -20,6 +20,9 @@ using tcp = net::ip::tcp;
 namespace sys = boost::system;
 namespace http = beast::http;
 
+using HttpRequest = http::request<http::string_body>;
+typedef std::pair<HttpRequest, std::string> MyRequest;
+
 static void ReportError(beast::error_code ec, std::string_view what) {
     std::cerr << what << ": "sv << ec.message() << std::endl;
 }
@@ -36,8 +39,7 @@ protected:
         : stream_(std::move(socket)) {
     }
     
-    using HttpRequest = http::request<http::string_body>;
-
+	tcp::endpoint GetRemoteIp();
     virtual ~SessionBase() = default;
 	
     template <typename Body, typename Fields>
@@ -87,10 +89,11 @@ private:
     }
     
     void HandleRequest(HttpRequest&& request) override {
+// 		std::cout << GetRemoteIp().address().to_string()<<std::endl;
         // Захватываем умный указатель на текущий объект Session в лямбде,
         // чтобы продлить время жизни сессии до вызова лямбды.
         // Используется generic-лямбда функция, способная принять response произвольного типа
-        request_handler_(std::move(request), [self = this->shared_from_this()](auto&& response) {
+        request_handler_(std::move(request), GetRemoteIp().address().to_string(), [self = this->shared_from_this()](auto&& response) {
             self->Write(std::move(response));
         });
     }
@@ -104,10 +107,10 @@ class Listener : public std::enable_shared_from_this<Listener<RequestHandler>> {
         : ioc_(ioc)
         // Обработчики асинхронных операций acceptor_ будут вызываться в своём strand
         , acceptor_(net::make_strand(ioc))
-        , request_handler_(std::forward<Handler>(request_handler)) {
+        , request_handler_(/*std::make_pair(*/std::forward<Handler>(request_handler)/*, endpoint.address().to_string())*/) {
         // Открываем acceptor, используя протокол (IPv4 или IPv6), указанный в endpoint
         acceptor_.open(endpoint.protocol());
-
+// 		std::cout << "endpoint: " << endpoint.address().to_string() <<" ; " /*<< request_handler.method()*/ <<std::endl;
         // После закрытия TCP-соединения сокет некоторое время может считаться занятым,
         // чтобы компьютеры могли обменяться завершающими пакетами данных.
         // Однако это может помешать повторно открыть сокет в полузакрытом состоянии.
@@ -165,7 +168,7 @@ private:
 };
 
 template <typename RequestHandler>
-void ServeHttp(net::io_context& ioc, const tcp::endpoint& endpoint, RequestHandler&& handler) {
+void ServerHttp(net::io_context& ioc, const tcp::endpoint& endpoint, RequestHandler&& handler) {
 	// При помощи decay_t исключим ссылки из типа RequestHandler,
     // чтобы Listener хранил RequestHandler по значению
     using MyListener = Listener<std::decay_t<RequestHandler>>;

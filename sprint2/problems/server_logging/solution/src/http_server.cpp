@@ -50,4 +50,9 @@ void SessionBase::Run() {
                   beast::bind_front_handler(&SessionBase::Read, GetSharedThis()));
 }
 
+tcp::endpoint SessionBase::GetRemoteIp() {
+	return stream_.socket().remote_endpoint();
+}
+
+
 }  // namespace http_server

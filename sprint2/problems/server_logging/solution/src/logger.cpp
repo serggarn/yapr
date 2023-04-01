@@ -1,6 +1,7 @@
 #include "logger.h"
 
 void InitLogger() {
+	logging::add_common_attributes();
 	// Настраиваем логи
 	logging::add_console_log(
 		std::clog,

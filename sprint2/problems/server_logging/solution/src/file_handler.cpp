@@ -21,16 +21,16 @@ std::pair<http::status, std::string>  Files::GetPath(std::string_view path) cons
 {
 	std::pair<http::status, std::string> res { http::status::ok, ""sv };
 	std::string normal_path = decodeURIComponent(path);
-	std::cout << "normal path: " << normal_path<<":" << path <<std::endl;
+// 	std::cout << "normal path: " << normal_path<<":" << path <<std::endl;
 	fs::path abs_path = fs::weakly_canonical(fs::path{base_path / fs::path{normal_path}.relative_path()});
-	std::cout << "paths: " << base_path << "; " << abs_path << std::endl; // Выведет "/this/is/another/path"	
+// 	std::cout << "paths: " << base_path << "; " << abs_path << std::endl; // Выведет "/this/is/another/path"	
 	if ( not IsSubPath(abs_path, base_path) ) {
 		res.first = http::status::bad_request;
 		return res;
 	}
 	if ( fs::is_directory(abs_path) )
 		abs_path /= fs::path{defaultFile};
-	std::cout << "issub ok " << abs_path.c_str() <<std::endl;
+// 	std::cout << "issub ok " << abs_path.c_str() <<std::endl;
 	if ( not fs::exists(abs_path) )
 		res.first = http::status::not_found;
 	res.second = abs_path.c_str();
@@ -56,7 +56,7 @@ std::string_view Files::GetContentType(std::string_view path) {
 // 	std::string_view ext = 
 	std::string ext = _path.extension().string();
 	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return std::tolower(c); });
-	std::cout << " ext: " << ext << std::endl;
+// 	std::cout << " ext: " << ext << std::endl;
 	auto result = extContType.find(ext);
 	if ( result == extContType.end() )
 		return http_types::ContentType::OTHER_TYPES;

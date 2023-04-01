@@ -67,12 +67,15 @@ int main(int argc, const char* argv[]) {
 
         // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
         http_handler::RequestHandler handler{game, files};
+// 		http_handler::RequestHandler handler{game, files};
+		http_handler::LoggingRequestHandler<http_handler::RequestHandler> logging_handler{handler};
 
         // 5. Запустить обработчик HTTP-запросов, делегируя их обработчику запросов
 		const auto address = net::ip::make_address("0.0.0.0");
 		constexpr net::ip::port_type port = 8080;
-        http_server::ServeHttp(ioc, {address, port}, [&handler](auto&& req, auto&& send) {
-            handler(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
+        http_server::ServerHttp(ioc, {address, port}, [&logging_handler](auto&& req, auto&& addr, auto&& send) {
+            logging_handler(std::forward<decltype(req)>(req), std::forward<decltype(addr)>(addr), std::forward<decltype(send)>(send));
+// 			   handler(std::forward<decltype(req)>(req))));
         });
 
 
