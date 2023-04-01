@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD 20)
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 	message(STATUS, "conan install... ")
 # 	execute_process(COMMAND cd ${CMAKE_BINARY_DIR})
-	exec_program(conan ${CMAKE_BINARY_DIR} ARGS install .. -s compiler.libcxx=libstdc++11 -s build_type=Debug)
-	set(CMAKE_BUILD_TYPE Debug)
+	exec_program(conan ${CMAKE_BINARY_DIR} ARGS install .. -s compiler.libcxx=libstdc++11 -s build_type=Release)
+	set(CMAKE_BUILD_TYPE Release)
 endif()
 
 # обратите внимание на аргумент TARGETS у команды conan_basic_setup
