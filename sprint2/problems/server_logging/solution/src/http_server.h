@@ -7,6 +7,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include "request_handler.h"
+#include "logger.h"
 
 namespace http_server {
 
@@ -23,9 +24,11 @@ namespace http = beast::http;
 using HttpRequest = http::request<http::string_body>;
 typedef std::pair<HttpRequest, std::string> MyRequest;
 
-static void ReportError(beast::error_code ec, std::string_view what) {
-    std::cerr << what << ": "sv << ec.message() << std::endl;
-}
+// static void ReportError(beast::error_code ec, std::string_view what) {
+//     std::cerr << what << ": "sv << ec.message() << std::endl;
+// }
+
+void LogError(beast::error_code ec, std::string_view where);
 
 class SessionBase {
 public:
@@ -52,7 +55,9 @@ protected:
                           [safe_response, self](beast::error_code ec, std::size_t bytes_written) {
                               self->OnWrite(safe_response->need_eof(), ec, bytes_written);
                           });
-    }
+    }	
+    
+
 private:
     // tcp_stream содержит внутри себя сокет и добавляет поддержку таймаутов
     beast::tcp_stream stream_;
@@ -66,8 +71,10 @@ private:
 	void OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written);
     
     void Close();
+	
 
-    // Обработку запроса делегируем подклассу
+    
+	// Обработку запроса делегируем подклассу
     virtual void HandleRequest(HttpRequest&& request) = 0;
 
     virtual std::shared_ptr<SessionBase> GetSharedThis() = 0;
@@ -152,7 +159,8 @@ private:
     // Метод socket::async_accept создаст сокет и передаст его передан в OnAccept
     void OnAccept(sys::error_code ec, tcp::socket socket) {
         if (ec) {
-            return ReportError(ec, "accept"sv);
+			LogError(ec, "accept"sv);
+//             return ReportError(ec, "accept"sv);
         }
 
         // Асинхронно обрабатываем сессию
