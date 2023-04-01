@@ -80,7 +80,7 @@ int main(int argc, const char* argv[]) {
 
 
 		json::object data;
-		data["ip"] = address.to_string();
+		data["address"] = address.to_string();
 		data["port"] = port;
 		BOOST_LOG_TRIVIAL(info) 
 			<< logging::add_value(additional_data, data )
