@@ -112,7 +112,7 @@ public:
                     try {
                         auto header = req.base();
                         auto auth = header.at(http::field::authorization);
-                        if (!auth.starts_with("Bearer")) {
+                        if (!auth.starts_with("Bearer") || auth.size() < (32 + 7)) {
                             status = http::status::unauthorized;
                             answ_obj["code"] = "invalidToken"s;
                             answ_obj["message"] = "Authorization header is missing"s;
