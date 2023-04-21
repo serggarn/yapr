@@ -10,9 +10,12 @@ public:
 	Dog(Id _id, std::string _name) noexcept 
 		: id(std::move(_id))
 		, name (std::move(_name)) {};
-	
-	const Id& GetId() const noexcept {
+
+    const Id& GetId() const noexcept {
         return id;
+    }
+    const std::string& GetName() const noexcept {
+        return name;
     }
 private:
 	Id id;

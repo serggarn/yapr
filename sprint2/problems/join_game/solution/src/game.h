@@ -14,6 +14,9 @@ public:
     const Maps& GetMaps() const noexcept {
         return maps_;
     }
+    const Sessions& GetSessions() const noexcept {
+            return sessions_;
+    }
 
     const std::shared_ptr<Map> FindMap(const Map::Id& id) const noexcept {
         if (auto it = map_id_to_index_.find(id); it != map_id_to_index_.end()) {

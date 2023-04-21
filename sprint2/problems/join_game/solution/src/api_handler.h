@@ -33,6 +33,7 @@ public:
 		std::string answer;
 		std::string_view trg = req.target();
 		std::string_view allow_method;
+        auto content_type = ContentType::APPL_JSON;
 
 		if ( trg == UriType::URI_JOIN ) {
             json::object answ_obj;
@@ -42,26 +43,36 @@ public:
 				{
 					try {
                         auto jsn_values = json::parse(req.body());
-						auto userName = jsn_values.as_object()["userName"].as_string().c_str();
-						auto mapId = jsn_values.as_object()["mapId"].as_string().c_str();
-						if ( userName == "" ) {
+						auto userName = jsn_values.as_object()["userName"].as_string();
+						auto mapId = jsn_values.as_object()["mapId"].as_string();
+						if ( userName.size() == 0 ) {
 							status = http::status::bad_request;
 							answ_obj["code"] = "invalidArgument";
 							answ_obj["message"] = "Invalid name";
-						} else if (game_.FindMap(model::Map::Id{mapId}) == nullptr) {
+						} else if (game_.FindMap(model::Map::Id{mapId.c_str()}) == nullptr) {
 							status = http::status::not_found;
 							answ_obj["code"] = "mapNotFound";
 							answ_obj["message"] = "Map not found";
 						} else {
 							status = http::status::ok;
-							auto map = game_.FindMap(model::Map::Id{mapId});
-							auto dog_id = player::Dog::Id{userName};
+                            auto name = userName.c_str();
+							auto map = game_.FindMap(model::Map::Id{mapId.c_str()});
+							auto dog_id = player::Dog::Id{name};
 // 							player::Dog dog {player::Dog::Id{userName}, userName };
-							model::GameSession gm_ses {model::GameSession::Id{mapId}, map};
-							game_.AddSession(gm_ses);
-							auto gs = game_.FindGameSession(model::GameSession::Id{mapId});
-							gs->AddDog({player::Dog::Id{userName}, userName });
-							auto dg = gs->FindDog(player::Dog::Id{userName});
+                            std::shared_ptr<model::GameSession> gs;
+                            // если уже есть сессия, то найдём её
+                            if ( game_.FindMap(model::Map::Id {mapId.c_str()}) != nullptr )
+                                for ( const auto& session : game_.GetSessions() ) {
+                                if ( *(session.GetMap()->GetId()) == mapId )
+                                    gs = std::make_shared<model::GameSession>(session);
+                            }
+                            if ( gs == nullptr ) {
+                                model::GameSession gm_ses{model::GameSession::Id{mapId.c_str()}, map};
+                                game_.AddSession(gm_ses);
+                                gs = game_.FindGameSession(model::GameSession::Id{mapId.c_str()});
+                            }
+                            gs->AddDog({player::Dog::Id{name}, name });
+							auto dg = gs->FindDog(player::Dog::Id{name});
 							auto token = players_.AddPlayer(dg, gs);
 							answ_obj["authToken"] = *(token.second);
 							answ_obj["playerId"] = *(token.first);
@@ -85,15 +96,72 @@ public:
 			}
             answer = json::serialize(answ_obj);
             body = answer;
-            std::cout << answer <<std::endl;
-			auto resp =  MakeStringResponse(status, body, req.version(), req.keep_alive(), rqs, ContentType::APPL_JSON, allow_method);
+			auto resp =  MakeStringResponse(status, body, req.version(), req.keep_alive(),
+                                            rqs, content_type, allow_method);
 			
-			HandlerResult res = std::make_pair( ContentType::TEXT_HTML, std::move(resp) );
+			HandlerResult res = std::make_pair( content_type, std::move(resp) );
 			return res;					
 				
 		} else if ( trg == UriType::URI_PLAYERS ) {
-			
-		} else
+            json::object answ_obj;
+            status = http::status::ok;
+            switch (req.method()) {
+                case http::verb::get: {
+                    try {
+                        auto header = req.base();
+                        auto auth = header.at(http::field::authorization);
+                        if (!auth.starts_with("Bearer")) {
+                            status = http::status::unauthorized;
+                            answ_obj["code"] = "invalidToken"s;
+                            answ_obj["message"] = "Authorization header is missing"s;
+
+                        } else {
+                            auto token_str = std::string{auth.substr(auth.find_first_not_of("Bearer "))};
+                            Token token{token_str};
+                            auto player = players_.FindByToken(token);
+                            if (player != nullptr) {
+                                auto playrs = players_.GetPlayers();
+//                            auto g_sessions = game_.GetSessions();
+//                            for (const auto& gs : game_.GetSessions()) {
+//                                gs.GetDogs()
+//                            }
+                                for (const auto &plyr: playrs) {
+                                    json::object plyr_json;
+                                    plyr_json["name"] = plyr.second.GetName();
+                                    answ_obj[std::to_string(*(plyr.second.GetId()))] = plyr_json;
+                                }
+
+                            } else {
+                                status = http::status::unauthorized;
+                                answ_obj["code"] = "unknownToken"s;
+                                answ_obj["message"] = "Player token has not been found"s;
+                            }
+                        }
+                    } catch(...) {
+                        status = http::status::unauthorized;
+                        answ_obj["code"] = "invalidToken"s;
+                        answ_obj["message"] = "Authorization header is missing"s;
+
+//                        {"code": "unknownToken", "message": "Player token has not been found"}
+                    }
+                    break;
+                }
+                default: {
+                    status = http::status::method_not_allowed;
+                    answ_obj["code"] = "invalidMethod"s;
+                    answ_obj["message"] = "Only GET method is expected"s;
+                    allow_method = "GET, HEAD"sv;
+                    break;
+                }
+            }
+            answer = json::serialize(answ_obj);
+            body = answer;
+            auto resp =  MakeStringResponse(status, body, req.version(), req.keep_alive(),
+                                            rqs, content_type, allow_method);
+
+            HandlerResult res = std::make_pair( content_type, std::move(resp) );
+            return res;
+        } else
 		switch (req.method()) 
 		{
 			case http::verb::get:

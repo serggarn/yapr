@@ -10,6 +10,7 @@ public:
 	Player() = delete;
 	Player(std::shared_ptr<player::Dog>& _dog, std::shared_ptr<model::GameSession>& _session) : id{next_id++}, dog{_dog}, session{_session} {};
     const Id& GetId() const noexcept { return id; }
+    std::string GetName() const noexcept { return dog->GetName(); }
 private:
 	std::shared_ptr<player::Dog> dog;
 	std::shared_ptr<model::GameSession> session;

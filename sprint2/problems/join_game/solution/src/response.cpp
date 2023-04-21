@@ -11,15 +11,15 @@ StringResponse MakeStringResponse(http::status status, std::string_view body, un
 	response.set(http::field::cache_control, "no-cache"sv);
 	if ( status == http::status::method_not_allowed)
 		response.set(http::field::allow, allow_method);
-	if ( rqs_tp == OTHER )
-	{
-		response.set(http::field::allow, "GET, HEAD"sv);
-	}
+//	if ( rqs_tp == OTHER )
+//	{
+//		response.set(http::field::allow, "GET, HEAD"sv);
+//	}
 //	if ( rqs_tp != HEAD )
 //	{
 		response.body() = body;
 //	}
- 		std::cout << "Body: " << body << std::endl;
+// 		std::cout << "Body: " << body << std::endl;
 	response.content_length(body.size());
 	response.keep_alive(keep_alive);
 	return response;
@@ -37,7 +37,7 @@ FileResponse MakeFileResponse(http::status status, std::string_view file_name, u
 	std::string f_name = std::string{file_name.begin(),file_name.end()};
 // 		std::cout <<"2"<<std::endl;
 	if (sys::error_code ec; file.open(f_name.c_str(), beast::file_mode::read, ec), ec) {
-		std::cout << "Failed to open file "sv << file_name << std::endl;
+//		std::cout << "Failed to open file "sv << file_name << std::endl;
 		throw std::runtime_error("File " + f_name + " do not open!");
 	}
 // 		std::cout <<"3"<<std::endl;
