@@ -17,7 +17,8 @@ public:
 		auto g1 = generator1_();
 		auto g2 = generator2_();
 		std::stringstream ss;
-		ss << std::hex << std::setw(16) << std::setfill('0') << g1 << g2;
+		ss << std::hex << std::setfill('0') << std::setw(16) << g1;
+		ss << std::hex << std::setfill('0') << std::setw(16) << g2;
 		return Token{ss.str()};
 	}
 private:

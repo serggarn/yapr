@@ -26,6 +26,9 @@ public:
 	const Dogs& GetDogs() const noexcept {
         return dogs_;
     }
+    const std::shared_ptr<Map>& GetMap() const noexcept {
+        return map_;
+    }
     
     std::shared_ptr<player::Dog> FindDog(const player::Dog::Id& id) const noexcept {
         if (auto it = dog_id_to_index_.find(id); it != dog_id_to_index_.end()) {
