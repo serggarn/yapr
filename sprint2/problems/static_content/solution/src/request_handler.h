@@ -152,9 +152,9 @@ private:
     model::Game& game_;
 	file_handler::Files& files_;
 	
-	void GetRoads(const model::Map& map, json::array& jsn_array);
-	void GetBuildings(const model::Map& map, json::array& jsn_array);
-	void GetOffices(const model::Map& map, json::array& jsn_array);	
+	void RoadsToJson(const model::Map& map, json::array& jsn_array);
+	void BuildingsToJson(const model::Map& map, json::array& jsn_array);
+	void OfficesToJson(const model::Map& map, json::array& jsn_array);	
 	void MapsToStr(std::string& answ);
 	int MapToStr(std::string_view map_id, std::string& answ);
 

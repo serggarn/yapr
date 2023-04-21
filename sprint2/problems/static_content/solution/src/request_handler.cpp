@@ -32,21 +32,21 @@ int RequestHandler::MapToStr(std::string_view map_id, std::string& answ) {
 	result["id"] = *(map->GetId());
 	result["name"] = map->GetName();
 	json::array jsn_roads;
-	GetRoads(*map, jsn_roads);
+	RoadsToJson(*map, jsn_roads);
 	result["roads"] = jsn_roads;
 	json::array jsn_bldgs;
 	
-	GetBuildings(*map, jsn_bldgs);
+	BuildingsToJson(*map, jsn_bldgs);
 	result["buildings"] = jsn_bldgs;
 
 	json::array jsn_ofcs;
-	GetOffices(*map, jsn_ofcs);
+	OfficesToJson(*map, jsn_ofcs);
 	result["offices"] = jsn_ofcs;
 	answ = json::serialize(result);
 	return 0;
 }
 
-void RequestHandler::GetRoads(const model::Map& map, json::array& jsn_array) {
+void RequestHandler::RoadsToJson(const model::Map& map, json::array& jsn_array) {
 	for (auto const& road : map.GetRoads() ) {
 		json::object jsn_rd;
 		model::Point start = road.GetStart();
@@ -60,7 +60,7 @@ void RequestHandler::GetRoads(const model::Map& map, json::array& jsn_array) {
 	}
 }
 
-void RequestHandler::GetBuildings(const model::Map& map, json::array& jsn_array) {
+void RequestHandler::BuildingsToJson(const model::Map& map, json::array& jsn_array) {
 	for (auto const& bldg : map.GetBuildings() ) {
 		json::object jsn_bldg;
 		auto rct = bldg.GetBounds();
@@ -72,7 +72,7 @@ void RequestHandler::GetBuildings(const model::Map& map, json::array& jsn_array)
 	}	
 }
 
-void RequestHandler::GetOffices(const model::Map& map, json::array& jsn_array) {
+void RequestHandler::OfficesToJson(const model::Map& map, json::array& jsn_array) {
 	for (auto const& ofc : map.GetOffices() ) {
 		json::object jsn_ofc;
 		auto id = ofc.GetId();

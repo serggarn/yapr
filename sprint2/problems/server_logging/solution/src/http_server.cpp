@@ -20,6 +20,7 @@ void SessionBase::OnRead(beast::error_code ec, [[maybe_unused]] std::size_t byte
 	}
 	if (ec) {
 		LogError(ec, "read"sv);
+		return Close();
 // 		return ReportError(ec, "read"sv);
 	}
 	HandleRequest(std::move(request_));
@@ -28,6 +29,7 @@ void SessionBase::OnRead(beast::error_code ec, [[maybe_unused]] std::size_t byte
 void SessionBase::OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written) {
 	if (ec) {
 		LogError(ec, "write"sv);
+		return Close();
 // 		return ReportError(ec, "write"sv);
 	}
 

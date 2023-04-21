@@ -7,6 +7,7 @@
 #include "http_types.h"
 #include "logger.h"
 #include <chrono>
+#include <variant>
 
 namespace http_handler {
 namespace beast = boost::beast;
@@ -52,7 +53,7 @@ class LoggingRequestHandler {
 // 	template <typename Body>
 	static void LogResponse(std::pair<int, std::string_view>& r, time_t time) {
 		json::object data;
-		data["response_time "] = time;
+		data["response_time"] = time;
 		data["code"] = r.first;
 		data["content_type"] = std::string{r.second};
 		BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, data)
@@ -69,6 +70,7 @@ public:
          auto resp = decorated_(std::move(req), std::move(send));
 		 auto res_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_ts).count();
          LogResponse(resp, (time_t)res_time);
+// 		 send(std::move(resp));
 //          return resp;
      }
 
@@ -185,7 +187,7 @@ public:
 // 						std::cout << "res: " << res.second <<std::endl;
 						auto content = files_.GetContentType(res.second);
 						auto resp = MakeFileResponse(res.first, res.second, req.version(), content);
-						send(resp);
+						send(std::move(resp));
 // 								std::cout <<"2"<<std::endl;
 						return std::make_pair(resp.result_int(), content);
 					}
@@ -195,8 +197,8 @@ public:
 // 						std::stringstream error_msg;
 // 					std::cout << "File " << trg << " not found!";
 // 						throw std::runtime_error(error_msg.str());
-					auto resp = MakeStringResponse(res.first, res.second, req.version(), req.keep_alive(), rqs, ContentType::TEXT_PLAIN);
-					send(resp);
+					auto resp =  MakeStringResponse(res.first, res.second, req.version(), req.keep_alive(), rqs, ContentType::TEXT_PLAIN);
+					send(std::move(resp));
 					return std::make_pair(resp.result_int(), ContentType::TEXT_PLAIN);
 				}
 				res.second = answer;
@@ -211,7 +213,7 @@ public:
 				break;
 			}
 		}
-		auto resp = MakeStringResponse(res.first, res.second, req.version(), req.keep_alive(), rqs);
+		auto resp =  MakeStringResponse(res.first, res.second, req.version(), req.keep_alive(), rqs);
 		send(resp);
 		return std::make_pair(resp.result_int(), ContentType::APPL_JSON/*resp.get(http::field::content_type)*/);
 		

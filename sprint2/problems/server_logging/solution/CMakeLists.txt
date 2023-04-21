@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.16)
 project(game_server CXX)
 set(CMAKE_CXX_STANDARD 20)
 
+if (EXISTS /usr/bin/clang-12)
+	set(CMAKE_C_COMPILER /usr/bin/clang-12)
+	set(CMAKE_CXX_COMPILER /usr/bin/clang++-12)
+endif()
 
 # Сгенерируем конфигурацию, если нет
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
