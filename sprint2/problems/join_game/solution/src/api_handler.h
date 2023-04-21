@@ -106,7 +106,9 @@ public:
             json::object answ_obj;
             status = http::status::ok;
             switch (req.method()) {
-                case http::verb::get: {
+                case http::verb::get:
+                case http::verb::head:
+                {
                     try {
                         auto header = req.base();
                         auto auth = header.at(http::field::authorization);
@@ -154,7 +156,7 @@ public:
                     break;
                 }
             }
-            answer = json::serialize(answ_obj);
+            answer = req.method() == http::verb::head ? "" : json::serialize(answ_obj);
             body = answer;
             auto resp =  MakeStringResponse(status, body, req.version(), req.keep_alive(),
                                             rqs, content_type, allow_method);
