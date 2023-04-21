@@ -19,6 +19,7 @@ public:
 		std::stringstream ss;
 		ss << std::hex << std::setfill('0') << std::setw(16) << g1;
 		ss << std::hex << std::setfill('0') << std::setw(16) << g2;
+//        std::cout << "token: " << ss.str() << std::endl;
 		return Token{ss.str()};
 	}
 private:

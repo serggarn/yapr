@@ -118,7 +118,7 @@ public:
                             answ_obj["message"] = "Authorization header is missing"s;
 
                         } else {
-                            auto token_str = std::string{auth.substr(auth.find_first_not_of("Bearer "))};
+                            auto token_str = std::string{auth.substr(auth.find_first_of(" ") + 1)};
                             Token token{token_str};
                             auto player = players_.FindByToken(token);
                             if (player != nullptr) {
@@ -134,6 +134,9 @@ public:
                                 }
 
                             } else {
+//                                std::cout << "req token: " << token_str<<std::endl;
+//                                for (const auto& tk : players_.GetPlayers())
+//                                    std::cout << *(tk.first) <<std::endl;
                                 status = http::status::unauthorized;
                                 answ_obj["code"] = "unknownToken"s;
                                 answ_obj["message"] = "Player token has not been found"s;
