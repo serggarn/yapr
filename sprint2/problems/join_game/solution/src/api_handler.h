@@ -1,0 +1,159 @@
+#pragma once
+#include "response.h"
+#include "game.h"
+#include "players.h"
+#include <boost/json.hpp>
+#include "http_types.h"
+// #include "dog.h"
+#include <sstream>
+
+namespace api_handler {
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace sys = boost::system;
+
+using namespace http_types;
+namespace json = boost::json;
+using HandlerResult = std::pair<std::string_view, http::response<http::string_body>>;
+
+class ApiHandler {
+private:
+	void RoadsToJson(const model::Map& map, json::array& jsn_array);
+	void BuildingsToJson(const model::Map& map, json::array& jsn_array);
+	void OfficesToJson(const model::Map& map, json::array& jsn_array);	
+	void MapsToStr(std::string& answ);
+	int MapToStr(std::string_view map_id, std::string& answ);
+public:
+	ApiHandler (model::Game& game, Players& players) : game_{game}, players_{players} {}
+	template <typename Body, typename Allocator>
+    HandlerResult GetResponse(http::request<Body, http::basic_fields<Allocator>>&& req) {
+		http::status status;
+		std::string_view body;
+		requests_e rqs {OTHER};
+		std::string answer;
+		std::string_view trg = req.target();
+		std::string_view allow_method;
+
+		if ( trg == UriType::URI_JOIN ) {
+            json::object answ_obj;
+			switch (req.method()) 
+			{
+				case http::verb::post:
+				{
+					try {
+                        auto jsn_values = json::parse(req.body());
+						auto userName = jsn_values.as_object()["userName"].as_string().c_str();
+						auto mapId = jsn_values.as_object()["mapId"].as_string().c_str();
+						if ( userName == "" ) {
+							status = http::status::bad_request;
+							answ_obj["code"] = "invalidArgument";
+							answ_obj["message"] = "Invalid name";
+						} else if (game_.FindMap(model::Map::Id{mapId}) == nullptr) {
+							status = http::status::not_found;
+							answ_obj["code"] = "mapNotFound";
+							answ_obj["message"] = "Map not found";
+						} else {
+							status = http::status::ok;
+							auto map = game_.FindMap(model::Map::Id{mapId});
+							auto dog_id = player::Dog::Id{userName};
+// 							player::Dog dog {player::Dog::Id{userName}, userName };
+							model::GameSession gm_ses {model::GameSession::Id{mapId}, map};
+							game_.AddSession(gm_ses);
+							auto gs = game_.FindGameSession(model::GameSession::Id{mapId});
+							gs->AddDog({player::Dog::Id{userName}, userName });
+							auto dg = gs->FindDog(player::Dog::Id{userName});
+							auto token = players_.AddPlayer(dg, gs);
+							answ_obj["authToken"] = *(token.second);
+							answ_obj["playerId"] = *(token.first);
+						}
+					}
+					catch (...) {
+						status = http::status::bad_request;
+						answ_obj["code"] = "invalidArgument"s;
+						answ_obj["message"] = "Join game request parse error"s;
+					}
+
+					break;
+				}
+				default: {
+					status = http::status::method_not_allowed;
+					answ_obj["code"] = "invalidMethod"s;
+					answ_obj["message"] = "Only POST method is expected"s;
+					allow_method = "POST"sv;
+					break;
+				}
+			}
+            answer = json::serialize(answ_obj);
+            body = answer;
+            std::cout << answer <<std::endl;
+			auto resp =  MakeStringResponse(status, body, req.version(), req.keep_alive(), rqs, ContentType::APPL_JSON, allow_method);
+			
+			HandlerResult res = std::make_pair( ContentType::TEXT_HTML, std::move(resp) );
+			return res;					
+				
+		} else if ( trg == UriType::URI_PLAYERS ) {
+			
+		} else
+		switch (req.method()) 
+		{
+			case http::verb::get:
+			{
+				status = http::status::ok;
+
+				if ( trg.starts_with(UriType::URI_JOIN) ) {
+					
+				}
+				else if ( trg.starts_with(UriType::URI_MAPS) ) {
+					if ( trg == UriType::URI_MAPS ) {
+						MapsToStr(answer);
+					}
+					else  {
+						auto map_id = trg.substr(UriType::URI_MAPS.size());
+						map_id.remove_prefix(std::min(map_id.find_first_not_of("/"), map_id.size()));
+						if ( MapToStr(map_id, answer) != 0 )
+						{
+							// карту не нашли
+							status = http::status::not_found;
+							json::object obj;
+							obj["code"] = "mapNotFound"s;
+							obj["message"] = "Map not found"s;
+							answer = json::serialize(obj);
+						}
+					}
+				} else if ( trg.starts_with(UriType::URI_START) ) {
+						status = http::status::bad_request;
+						json::object obj;
+						obj["code"] = "badRequest"s;
+						obj["message"] = "Bad request"s;
+						answer = json::serialize(obj);					
+				}
+				body = answer;
+				rqs = GET;
+				break;
+			}
+			case http::verb::post:
+			{
+				
+				break;
+			}
+			default:
+			{
+				status = http::status::method_not_allowed;
+				body = "Invalid method"sv;
+				rqs = OTHER;
+				break;
+			}
+		}
+		 
+		 auto resp =  MakeStringResponse(status, body, req.version(), req.keep_alive(), rqs);
+		 
+		 HandlerResult res = std::make_pair( ContentType::TEXT_HTML, std::move(resp) );
+		 return res;
+	}
+	
+private:
+    model::Game& game_;
+	Players& players_;
+};
+
+} // namespace http_handler
