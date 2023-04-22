@@ -4,7 +4,6 @@
 #include "players.h"
 #include <boost/json.hpp>
 #include "http_types.h"
-// #include "dog.h"
 #include <sstream>
 
 namespace api_handler {
@@ -187,12 +186,12 @@ public:
                                     json::object plyr_json;
                                     auto dog = plyr.second.GetDog();
                                     json::array pos_arr;
-                                    pos_arr.emplace_back(std::to_string(dog->GetPos().x));
-                                    pos_arr.emplace_back(std::to_string(dog->GetPos().y));
+                                    pos_arr.emplace_back(model::real_to_string<model::CoordReal>(dog->GetPos().x));
+                                    pos_arr.emplace_back(model::real_to_string<model::CoordReal>(dog->GetPos().y));
                                     plyr_json["pos"] = pos_arr;
                                     json::array pos_speed;
-                                    pos_speed.emplace_back(std::to_string(dog->GetSpeed().vx));
-                                    pos_speed.emplace_back(std::to_string(dog->GetSpeed().vy));
+                                    pos_speed.emplace_back(model::real_to_string<model::SpeedLine>(dog->GetSpeed().vx));
+                                    pos_speed.emplace_back(model::real_to_string<model::SpeedLine>(dog->GetSpeed().vy));
                                     plyr_json["speed"] = pos_speed;
                                     plyr_json["dir"] = dog->GetDirStr();
                                     plyrs_jsn[std::to_string(*(plyr.second.GetId()))] = plyr_json;

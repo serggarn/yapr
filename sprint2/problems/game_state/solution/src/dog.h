@@ -2,10 +2,19 @@
 #include <iostream>
 #include "tagged.h"
 #include <map>
+#include <sstream>
+#include <iomanip>
 
 namespace model {
 using CoordReal = double;
 using SpeedLine = double;
+
+template <typename T>
+const std::string real_to_string(const T& t) {
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1) << t;
+    return ss.str().c_str();
+}
 
 enum Direction : uint8_t {
     North = 0x00,
