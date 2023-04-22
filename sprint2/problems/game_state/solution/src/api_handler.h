@@ -186,12 +186,15 @@ public:
                                     json::object plyr_json;
                                     auto dog = plyr.second.GetDog();
                                     json::array pos_arr;
-                                    pos_arr.emplace_back(model::real_to_string<model::CoordReal>(dog->GetPos().x));
-                                    pos_arr.emplace_back(model::real_to_string<model::CoordReal>(dog->GetPos().y));
+                                    json::value x = json::value(dog->GetPos().x).as_double();
+
+                                    pos_arr.emplace_back(dog->GetPos().x);
+//                                    std::cout << std::fixed << pos_arr.at(0)<<std::endl;
+                                    pos_arr.emplace_back(dog->GetPos().y);
                                     plyr_json["pos"] = pos_arr;
                                     json::array pos_speed;
-                                    pos_speed.emplace_back(model::real_to_string<model::SpeedLine>(dog->GetSpeed().vx));
-                                    pos_speed.emplace_back(model::real_to_string<model::SpeedLine>(dog->GetSpeed().vy));
+                                    pos_speed.emplace_back(dog->GetSpeed().vx);
+                                    pos_speed.emplace_back(dog->GetSpeed().vy);
                                     plyr_json["speed"] = pos_speed;
                                     plyr_json["dir"] = dog->GetDirStr();
                                     plyrs_jsn[std::to_string(*(plyr.second.GetId()))] = plyr_json;
@@ -221,6 +224,7 @@ public:
                 }
             }
             answer = req.method() == http::verb::head ? "" : json::serialize(answ_obj);
+            std::cout <<answer <<std::endl;
             body = answer;
             auto resp =  MakeStringResponse(status, body, req.version(), req.keep_alive(),
                                             rqs, content_type, allow_method);
