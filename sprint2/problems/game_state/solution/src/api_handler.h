@@ -181,6 +181,7 @@ public:
                             Token token{token_str};
                             auto player = players_.FindByToken(token);
                             if (player != nullptr) {
+                                json::object plyrs_jsn;
                                 auto playrs = players_.GetPlayers();
                                 for (const auto &plyr: playrs) {
                                     json::object plyr_json;
@@ -194,9 +195,9 @@ public:
                                     pos_speed.emplace_back(std::to_string(dog->GetSpeed().vy));
                                     plyr_json["speed"] = pos_speed;
                                     plyr_json["dir"] = dog->GetDirStr();
-                                    answ_obj[std::to_string(*(plyr.second.GetId()))] = plyr_json;
+                                    plyrs_jsn[std::to_string(*(plyr.second.GetId()))] = plyr_json;
                                 }
-
+                                answ_obj["players"]=plyrs_jsn;
                             } else {
                                 status = http::status::unauthorized;
                                 answ_obj["code"] = "unknownToken"s;
