@@ -60,6 +60,7 @@ void GameSession::Tick(int delta) {
         auto pos = dog->GetPos();
         std::cout << "pos: " << pos.x << " : " << pos.y <<std::endl;
         auto speed = dog->GetSpeed();
+        Speed new_speed = speed;
         auto new_pos = Position {pos.x + (speed.vx * delt_r ), pos.y + (speed.vy * delt_r)};
         std::cout << speed.vx * delt_r << " ; " << speed.vy * delt_r << std::endl;
         std::cout << "new_pos: " << new_pos.x << " : " << new_pos.y <<std::endl;
@@ -78,6 +79,8 @@ void GameSession::Tick(int delta) {
                 minX = roads.second->GetStart().x - Road::HALF_WIDTH;
                 maxX = roads.second->GetStart().x + Road::HALF_WIDTH;
             }
+            if ( new_pos.x <= minX || new_pos.x >= maxX )
+                new_speed.vx = 0;
             new_pos.x = new_pos.x < minX ? minX : new_pos.x;
             new_pos.x = new_pos.x > maxX ? maxX : new_pos.x;
         }
@@ -91,12 +94,16 @@ void GameSession::Tick(int delta) {
                 minY = roads.second->GetStart().y - Road::HALF_WIDTH;
                 maxY = roads.second->GetStart().y + Road::HALF_WIDTH;
             }
+            if ( new_pos.y <= minY || new_pos.y >= maxY )
+                new_speed.vy = 0;
             new_pos.y = new_pos.y < minY ? minY : new_pos.y;
             new_pos.y = new_pos.y > maxY ? maxY : new_pos.y;
         }
         std::cout << "new_pos res: " << new_pos.x << " : " << new_pos.y <<std::endl;
 
         dog->SetPos(new_pos);
+        if (speed != new_speed)
+            dog->SetSpeed(new_speed);
     }
 }
 } // namespace model

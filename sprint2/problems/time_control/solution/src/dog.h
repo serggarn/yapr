@@ -44,6 +44,9 @@ struct Position {
 
 struct Speed {
     SpeedLine vx, vy;
+    bool operator==(Speed& rhs) {
+        return vx == rhs.vx && vy == rhs.vy;
+    }
 };
 
 class Dog {
@@ -71,8 +74,15 @@ public:
     const Speed& GetSpeed() const noexcept {
         return speed;
     }
-    void SetPos(Position& pos) noexcept {
-        pos = std::move(pos);
+    void SetPos(Position& _pos) noexcept {
+        pos = std::move(_pos);
+    }
+
+    void SetSpeed(Speed& _speed) noexcept {
+        speed = std::move(_speed);
+    }
+    void Stop() noexcept {
+        speed = Speed {0, 0};
     }
     void SetMove(const SpeedLine& _speed, const std::string& _dir_str );
 private:
