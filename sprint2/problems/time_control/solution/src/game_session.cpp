@@ -72,8 +72,8 @@ void GameSession::Tick(int delta) {
         if (speed.vx != 0 ) {
             CoordReal minX, maxX;
             if (roads.second != nullptr) {
-                minX = std::min(roads.second->GetStart().x, roads.second->GetEnd().x);
-                maxX = std::max(roads.second->GetStart().x, roads.second->GetEnd().x);
+                minX = std::min(roads.second->GetStart().x, roads.second->GetEnd().x) - Road::HALF_WIDTH;
+                maxX = std::max(roads.second->GetStart().x, roads.second->GetEnd().x) + Road::HALF_WIDTH;
             }
             else {
                 minX = roads.second->GetStart().x - Road::HALF_WIDTH;
@@ -87,8 +87,8 @@ void GameSession::Tick(int delta) {
         else if ( speed.vy != 0 ) {
             CoordReal minY, maxY;
             if (roads.first != nullptr) {
-                minY = std::min(roads.second->GetStart().y, roads.second->GetEnd().y);
-                maxY = std::max(roads.second->GetStart().y, roads.second->GetEnd().y);
+                minY = std::min(roads.second->GetStart().y, roads.second->GetEnd().y) - Road::HALF_WIDTH;
+                maxY = std::max(roads.second->GetStart().y, roads.second->GetEnd().y) + Road::HALF_WIDTH;
             }
             else {
                 minY = roads.second->GetStart().y - Road::HALF_WIDTH;
