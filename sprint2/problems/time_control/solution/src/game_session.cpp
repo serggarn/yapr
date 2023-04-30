@@ -1,6 +1,7 @@
 #include "game_session.h"
 #include <random>
 #include <chrono>
+#include <cmath>
 
 namespace model {
 using namespace std::literals;
@@ -65,7 +66,7 @@ void GameSession::Tick(int delta) {
         std::cout << speed.vx * delt_r << " ; " << speed.vy * delt_r << std::endl;
         std::cout << "new_pos: " << new_pos.x << " : " << new_pos.y <<std::endl;
         // check new pos
-        auto roads = map_->GetRoadsByCoord(Point{static_cast<int>(pos.x),static_cast<int>(pos.y)});
+        auto roads = map_->GetRoadsByCoord(Point{static_cast<int>(std::round(pos.x)),static_cast<int>(std::round(pos.y))});
         std::cout << "wee " << (roads.first == nullptr) << "; " <<  (roads.second == nullptr)  <<std::endl;
         if ( roads.first == nullptr && roads.second == nullptr )
             continue;
