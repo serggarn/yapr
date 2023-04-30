@@ -11,7 +11,7 @@ class GameSession {
 public:
 // 	using Id = util::Tagged<model::Map, GameSession>;
 	using Id = util::Tagged<std::string, GameSession>;
-	using Dogs = std::vector<model::Dog>;
+	using Dogs = std::vector<std::shared_ptr<model::Dog>>;
 // 	GameSession(Id id, std::string map) 
 	
 	GameSession(Id id, std::shared_ptr<model::Map> map) 
@@ -32,7 +32,7 @@ public:
     
     std::shared_ptr<model::Dog> FindDog(const model::Dog::Id& id) const noexcept {
         if (auto it = dog_id_to_index_.find(id); it != dog_id_to_index_.end()) {
-            return std::make_shared<model::Dog>(dogs_.at(it->second));
+            return dogs_.at(it->second);
         }
         return nullptr;
     }

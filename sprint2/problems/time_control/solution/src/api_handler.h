@@ -91,20 +91,27 @@ public:
                             auto map = game_.FindMap(model::Map::Id{mapId.c_str()});
                             auto dog_id = model::Dog::Id{name};
 // 							player::Dog dog {player::Dog::Id{userName}, userName };
-                            std::shared_ptr<model::GameSession> gs;
+                            std::shared_ptr<model::GameSession> gs{nullptr};
                             // если уже есть сессия, то найдём её
-                            if (game_.FindMap(model::Map::Id{mapId.c_str()}) != nullptr)
-                                for (const auto &session: game_.GetSessions()) {
-                                    if (*(session.GetMap()->GetId()) == mapId)
-                                        gs = std::make_shared<model::GameSession>(session);
+                            if (game_.FindMap(model::Map::Id{mapId.c_str()}) != nullptr) {
+                                for (auto& session: game_.GetSessions()) {
+                                    if (*(session->GetMap()->GetId()) == mapId) {
+                                        std::cout << "find gs " << session->GetDogs().size() << std::endl;
+                                        gs = session;
+                                    }
                                 }
+                            }
                             if (gs == nullptr) {
+                                std::cout << "gs == nullptr" <<std::endl;
                                 model::GameSession gm_ses{model::GameSession::Id{mapId.c_str()}, map};
                                 game_.AddSession(gm_ses);
                                 gs = game_.FindGameSession(model::GameSession::Id{mapId.c_str()});
                             }
                             gs->AddDog(name);
                             auto dg = gs->FindDog(model::Dog::Id{name});
+                            std::cout << "size of dogs: " << gs->GetDogs().size() << std::endl;
+                            std::cout << "size of maps: " << game_.GetMaps().size() << std::endl;
+                            std::cout << "size of sessions: " << game_.GetSessions().size() << std::endl;
                             auto token = players_.AddPlayer(dg, gs);
                             answ_obj["authToken"] = *(token.second);
                             answ_obj["playerId"] = *(token.first);

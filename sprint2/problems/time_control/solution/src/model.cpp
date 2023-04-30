@@ -1,6 +1,7 @@
 #include "model.h"
 
 #include <stdexcept>
+#include <iostream>
 
 namespace model {
 using namespace std::literals;
@@ -27,8 +28,10 @@ void Map::AddRoad(const Road& road) {
     if ( rd->IsHorizontal() ) {
         if ( ! hor_roads_.contains(rd->GetStart().y) )
             hor_roads_.emplace(rd->GetStart().y, MapRoad1D{});
-        auto hr = hor_roads_.at(rd->GetStart().y);
-        hr.emplace(std::min(rd->GetStart().x, rd->GetEnd().x), rd);
+        auto hr = hor_roads_.find(rd->GetStart().y);
+//        std::cout << "AddRoad: " << hr->second.size() <<std::endl;
+        auto res = hr->second.emplace(std::min(rd->GetStart().x, rd->GetEnd().x), rd);
+//        std::cout << "AddRoad after emplace: " << hr->second.size() << "; res: " << res.second <<std::endl;
     }
     else {
         if ( ! vert_roads_.contains(rd->GetStart().x) )
@@ -36,6 +39,10 @@ void Map::AddRoad(const Road& road) {
         auto hr = vert_roads_.at(rd->GetStart().x);
         hr.emplace(std::min(rd->GetStart().y, rd->GetEnd().y), rd);
     }
+//    if ( rd->IsHorizontal())
+//        std::cout << "AddRoad after edding: " << hor_roads_.at(rd->GetStart().y).size() <<std::endl;
+
+//    PrintVHRoads();
 }
 
 /**
@@ -45,7 +52,11 @@ void Map::AddRoad(const Road& road) {
  */
 const std::pair <std::shared_ptr<Road>, std::shared_ptr<Road>> Map::GetRoadsByCoord(const Point& pos) const {
     auto res = std::make_pair<std::shared_ptr<Road>, std::shared_ptr<Road>> (nullptr, nullptr);
+    std::cout << "GetRoadsByCoord: " << pos.x <<" : " << pos.y <<std::endl;
+    std::cout << "Sizes: " << vert_roads_.size() <<" : " << hor_roads_.size() <<std::endl;
+
     if ( vert_roads_.contains(pos.x)) {
+        std::cout << "vert contains " <<std::endl;
         auto rds = vert_roads_.at(pos.x);
         for (const auto& rd : rds ) {
             auto x_left = rd.first;
@@ -58,8 +69,10 @@ const std::pair <std::shared_ptr<Road>, std::shared_ptr<Road>> Map::GetRoadsByCo
     }
     if ( hor_roads_.contains(pos.y)) {
         auto rds = hor_roads_.at(pos.y);
+        std::cout << "hor contains " << rds.size() << std::endl;
         for (const auto& rd : rds ) {
             auto y_up = rd.first;
+            std::cout << "y_up: " << y_up << "; pos.y: " <<pos.y <<std::endl;
             auto y_down = std::max(rd.second->GetStart().x, rd.second->GetEnd().x);
             if (pos.y < y_up)
                 break;
@@ -72,8 +85,34 @@ const std::pair <std::shared_ptr<Road>, std::shared_ptr<Road>> Map::GetRoadsByCo
 }
 
 bool Road::CheckPoint(const Point& point) const noexcept {
+    std::cout << "CheckPoint: " <<std::min(start_.x, end_.x)  << "<=" << point.x << " && " << point.x << "<=" << std::max(start_.x, end_.x)
+              << " && " << std::min(start_.y, end_.y) << "<=" << point.y << " && " << point.y << "<=" << std::max(start_.y, end_.y) <<std::endl;
     return std::min(start_.x, end_.x) <= point.x && point.x <= std::max(start_.x, end_.x)
-            && std::min(start_.y, end_.y) <= point.y && point.y <= std::max(start_.y, end_.y);
+           && std::min(start_.y, end_.y) <= point.y && point.y <= std::max(start_.y, end_.y);
 }
 
+bool Road::CheckPoint(const model::Position& point) const noexcept {
+    std::cout << "CheckPoint: " <<std::min(start_.x, end_.x)  << "<=" << point.x << " && " << point.x << "<=" << std::max(start_.x, end_.x)
+              << " && " << std::min(start_.y, end_.y) << "<=" << point.y << " && " << point.y << "<=" << std::max(start_.y, end_.y) <<std::endl;
+    if ( IsHorizontal() ) {
+        return std::min(start_.x, end_.x) <= point.x && point.x <= std::max(start_.x, end_.x)
+               && std::min(start_.y, end_.y) - HALF_WIDTH <= point.y && point.y <= std::max(start_.y, end_.y) + HALF_WIDTH;
+    }
+    else {
+        return std::min(start_.x, end_.x) - HALF_WIDTH <= point.x && point.x <= std::max(start_.x, end_.x) + HALF_WIDTH
+               && std::min(start_.y, end_.y) <= point.y && point.y <= std::max(start_.y, end_.y);
+    }
+}
+
+void Map::PrintVHRoads() const {
+    std::cout << "MAP: " << name_ << std::endl
+            <<"vert_roads: " << vert_roads_.size() <<std::endl;
+    for (const auto& rds : vert_roads_)
+        for (const auto& rd : rds.second )
+            std::cout << rds.first <<"; " << rd.first << "; " << std::endl;
+    std::cout << "hor_roads: " << hor_roads_.size() <<std::endl;
+    for (const auto& rds : vert_roads_)
+        for (const auto& rd : rds.second )
+            std::cout << rd.first <<"; " << rds.first << "; " << std::endl;
+}
 }  // namespace model

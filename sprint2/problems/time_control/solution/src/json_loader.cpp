@@ -37,6 +37,7 @@ model::Game LoadGame(const std::filesystem::path& json_path) {
 		for ( auto const& jsn_ofc : jsn_ofcs ) {
 			map.AddOffice(LoadOffice(jsn_ofc));
 		}
+//        map.PrintVHRoads();
 		game.AddMap(map);
 	}
     return game;

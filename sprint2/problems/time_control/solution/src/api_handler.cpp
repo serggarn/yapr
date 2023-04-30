@@ -199,6 +199,10 @@ StringResponse ApiHandler::SetTick(const StringRequest& request) {
     auto delta = jsn_values.as_object().at("timeDelta").as_int64();
     std::cout <<"12"<<std::endl;
     std::string answer = json::serialize(answ_obj);
+    for (const auto& session : game_.GetSessions()) {
+        auto gs = game_.FindGameSession(session->GetId());
+        gs->Tick(delta);
+    }
     return  MakeStringResponse(status, answer, request.version(), request.keep_alive());
 }
 

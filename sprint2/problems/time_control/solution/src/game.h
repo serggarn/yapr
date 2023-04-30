@@ -6,7 +6,7 @@ namespace model {
 	class Game {
 public:
     using Maps = std::vector<Map>;
-	using Sessions = std::vector<GameSession>;
+	using Sessions = std::vector<std::shared_ptr<GameSession>>;
 	
 
     void AddMap(const Map& map);
@@ -30,7 +30,7 @@ public:
 
 	const std::shared_ptr<GameSession> FindGameSession(const GameSession::Id& id) const noexcept {
         if (auto it = session_id_to_index_.find(id); it != session_id_to_index_.end()) {
-            return std::make_shared<GameSession>(sessions_.at(it->second));
+            return sessions_.at(it->second);
         }
         return nullptr;
     }

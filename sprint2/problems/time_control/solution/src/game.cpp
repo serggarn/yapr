@@ -25,7 +25,7 @@ void Game::AddSession(const GameSession& session)
         throw std::invalid_argument("Session with id "s + *session.GetId() + " already exists"s);
     } else {
         try {
-            sessions_.emplace_back(std::move(session));
+            sessions_.emplace_back(std::make_shared<GameSession>(session));
         } catch (...) {
             session_id_to_index_.erase(it);
             throw;

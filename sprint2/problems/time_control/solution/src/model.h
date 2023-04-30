@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "tagged.h"
+#include "dog.h"
 
 namespace model {
 
@@ -70,6 +71,8 @@ public:
     }
 
     bool CheckPoint(const Point& point) const noexcept;
+
+    bool CheckPoint(const model::Position& point) const noexcept;
 
 private:
     Point start_;
@@ -165,8 +168,9 @@ public:
 
     const std::pair <std::shared_ptr<Road>, std::shared_ptr<Road>> GetRoadsByCoord(const Point& pos) const;
 
+    void PrintVHRoads() const;
 
-        private:
+private:
     using OfficeIdToIndex = std::unordered_map<Office::Id, size_t, util::TaggedHasher<Office::Id>>;
 
     Id id_;
