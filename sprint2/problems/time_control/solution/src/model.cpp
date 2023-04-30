@@ -23,24 +23,26 @@ void Map::AddOffice(const Office& office) {
 }
 
 void Map::AddRoad(const Road& road) {
-    roads_.emplace_back(std::make_shared<Road>(road));
+    roads_.emplace_back(std::make_shared<Road>(std::move(road)));
     auto rd = roads_.back();
     if ( rd->IsHorizontal() ) {
         if ( ! hor_roads_.contains(rd->GetStart().y) )
             hor_roads_.emplace(rd->GetStart().y, MapRoad1D{});
         auto hr = hor_roads_.find(rd->GetStart().y);
-//        std::cout << "AddRoad: " << hr->second.size() <<std::endl;
+        std::cout << "AddRoad: " << hr->second.size() <<std::endl;
         auto res = hr->second.emplace(std::min(rd->GetStart().x, rd->GetEnd().x), rd);
-//        std::cout << "AddRoad after emplace: " << hr->second.size() << "; res: " << res.second <<std::endl;
+        std::cout << "AddRoad after emplace: " << hr->second.size() << "; res: " << res.second <<std::endl;
     }
     else {
         if ( ! vert_roads_.contains(rd->GetStart().x) )
             vert_roads_.emplace(rd->GetStart().x, MapRoad1D{});
-        auto hr = vert_roads_.at(rd->GetStart().x);
-        hr.emplace(std::min(rd->GetStart().y, rd->GetEnd().y), rd);
+        auto hr = vert_roads_.find(rd->GetStart().x);
+        hr->second.emplace(std::min(rd->GetStart().y, rd->GetEnd().y), rd);
     }
-//    if ( rd->IsHorizontal())
-//        std::cout << "AddRoad after edding: " << hor_roads_.at(rd->GetStart().y).size() <<std::endl;
+    if ( rd->IsHorizontal())
+        std::cout << "AddRoad after edding: " << hor_roads_.at(rd->GetStart().y).size() <<std::endl;
+    else
+        std::cout << "AddRoad after edding: " << vert_roads_.at(rd->GetStart().x).size() <<std::endl;
 
 //    PrintVHRoads();
 }
@@ -56,14 +58,14 @@ const std::pair <std::shared_ptr<Road>, std::shared_ptr<Road>> Map::GetRoadsByCo
     std::cout << "Sizes: " << vert_roads_.size() <<" : " << hor_roads_.size() <<std::endl;
 
     if ( vert_roads_.contains(pos.x)) {
-        std::cout << "vert contains " <<std::endl;
         auto rds = vert_roads_.at(pos.x);
+        std::cout << "vert contains " << rds.size() <<std::endl;
         for (const auto& rd : rds ) {
             auto x_left = rd.first;
             auto x_right = std::max(rd.second->GetStart().y, rd.second->GetEnd().y);
             if (pos.x < x_left)
                 break;
-            if ( pos.x >= x_left && pos.x <= x_right)
+            if ( rd.second->CheckPoint(pos))
                 res.first = rd.second;
         }
     }
@@ -107,12 +109,16 @@ bool Road::CheckPoint(const model::Position& point) const noexcept {
 void Map::PrintVHRoads() const {
     std::cout << "MAP: " << name_ << std::endl
             <<"vert_roads: " << vert_roads_.size() <<std::endl;
-    for (const auto& rds : vert_roads_)
-        for (const auto& rd : rds.second )
-            std::cout << rds.first <<"; " << rd.first << "; " << std::endl;
+    for (const auto& rds : vert_roads_) {
+        std::cout << rds.second.size() <<std::endl;
+        for (const auto &rd: rds.second)
+            std::cout << rds.first << "; " << rd.first << "; " << std::endl;
+    }
     std::cout << "hor_roads: " << hor_roads_.size() <<std::endl;
-    for (const auto& rds : vert_roads_)
-        for (const auto& rd : rds.second )
-            std::cout << rd.first <<"; " << rds.first << "; " << std::endl;
+    for (const auto& rds : vert_roads_) {
+        std::cout << rds.second.size() <<std::endl;
+        for (const auto &rd: rds.second)
+            std::cout << rd.first << "; " << rds.first << "; " << std::endl;
+    }
 }
 }  // namespace model
