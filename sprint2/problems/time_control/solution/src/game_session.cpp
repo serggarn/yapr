@@ -66,7 +66,7 @@ void GameSession::Tick(int delta) {
         std::cout << "new_pos: " << new_pos.x << " : " << new_pos.y <<std::endl;
         // check new pos
         auto roads = map_->GetRoadsByCoord(Point{static_cast<int>(pos.x),static_cast<int>(pos.y)});
-
+        std::cout << "wee " << (roads.first == nullptr) << "; " <<  (roads.second == nullptr)  <<std::endl;
         if ( roads.first == nullptr && roads.second == nullptr )
             continue;
         if (speed.vx != 0 ) {
@@ -76,8 +76,8 @@ void GameSession::Tick(int delta) {
                 maxX = std::max(roads.second->GetStart().x, roads.second->GetEnd().x) + Road::HALF_WIDTH;
             }
             else {
-                minX = roads.second->GetStart().x - Road::HALF_WIDTH;
-                maxX = roads.second->GetStart().x + Road::HALF_WIDTH;
+                minX = roads.first->GetStart().x - Road::HALF_WIDTH;
+                maxX = roads.first->GetStart().x + Road::HALF_WIDTH;
             }
             if ( new_pos.x <= minX || new_pos.x >= maxX )
                 new_speed.vx = 0;
@@ -91,8 +91,10 @@ void GameSession::Tick(int delta) {
                 maxY = std::max(roads.first->GetStart().y, roads.first->GetEnd().y) + Road::HALF_WIDTH;
             }
             else {
-                minY = roads.first->GetStart().y - Road::HALF_WIDTH;
-                maxY = roads.first->GetStart().y + Road::HALF_WIDTH;
+                std::cout <<1<<std::endl;
+                minY = roads.second->GetStart().y - Road::HALF_WIDTH;
+                std::cout <<2<<std::endl;
+                maxY = roads.second->GetStart().y + Road::HALF_WIDTH;
             }
             if ( new_pos.y <= minY || new_pos.y >= maxY )
                 new_speed.vy = 0;
