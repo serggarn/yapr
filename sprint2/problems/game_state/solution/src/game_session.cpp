@@ -9,8 +9,12 @@ const Point GameSession::GetRandomPointFromRoads() const {
     std::mt19937 gen(rd());  // to seed mersenne twister.
     std::uniform_int_distribution<model::Dimension> dist_road(0, map_->GetRoads().size() - 1);
     auto road = map_->GetRoads().at(dist_road(gen));
-    std::uniform_int_distribution<model::Dimension> dist_x(road.GetStart().x, road.GetEnd().x);
-    std::uniform_int_distribution<model::Dimension> dist_y(road.GetStart().y, road.GetEnd().y);
+    auto minX = std::min(road.GetStart().x, road.GetEnd().x);
+    auto maxX = std::min(road.GetStart().x, road.GetEnd().x);
+    auto minY = std::min(road.GetStart().y, road.GetEnd().y);
+    auto maxY = std::min(road.GetStart().y, road.GetEnd().y);
+    std::uniform_int_distribution<model::Dimension> dist_x(minX, maxX);
+    std::uniform_int_distribution<model::Dimension> dist_y(minY, maxY);
     return {dist_x(gen), dist_y(gen)};
 }
 
