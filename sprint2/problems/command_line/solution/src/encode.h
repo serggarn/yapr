@@ -23,7 +23,7 @@ std::string decodeURIComponent(std::string_view encoded) {
         if (std::regex_match(haystack, sm, std::regex("%[0-9A-F]{2}")))
         {
             haystack = haystack.replace(0, 1, "0x");
-            std::string rc = {(char)std::stoi(haystack, nullptr, 16)};
+            std::string rc = {static_cast<char>(std::stoi(haystack, nullptr, 16))};
             decoded = decoded.replace(decoded.begin() + i, decoded.begin() + i + 3, rc);
         }
 
@@ -42,7 +42,7 @@ std::string encodeURIComponent(std::string_view decoded)
 
     for (char &c : std::string{decoded})
     {
-        if (std::regex_match((std::string){c}, r))
+        if (std::regex_match(std::string{c}, r))
         {
             oss << c;
         }

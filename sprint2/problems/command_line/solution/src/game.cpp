@@ -37,15 +37,15 @@ void Game::AddSession(const GameSession& session)
 
 void Game::Tick(std::chrono::milliseconds delta) {
 //    std::cout << "dog: " << dogs_.size() <<std::endl;
-    double delt_r = delta.count() * ms_in_sec;
+    double delta_real = delta.count() * ms_in_sec;
     for (const auto& gs : sessions_ ) {
         for (auto &dog: gs->GetDogs()) {
             auto pos = dog->GetPos();
             std::cout << "pos: " << pos.x << " : " << pos.y << std::endl;
             auto speed = dog->GetSpeed();
             Speed new_speed = speed;
-            auto new_pos = Position{pos.x + (speed.vx * delt_r), pos.y + (speed.vy * delt_r)};
-            std::cout << speed.vx * delt_r << " ; " << speed.vy * delt_r << std::endl;
+            auto new_pos = Position{pos.x + (speed.vx * delta_real), pos.y + (speed.vy * delta_real)};
+            std::cout << speed.vx * delta_real << " ; " << speed.vy * delta_real << std::endl;
             std::cout << "new_pos: " << new_pos.x << " : " << new_pos.y << std::endl;
             // check new pos
             auto roads = gs->GetMap()->GetRoadsByCoord(

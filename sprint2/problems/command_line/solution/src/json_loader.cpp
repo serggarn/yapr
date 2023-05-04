@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include "model/json_tags.h"
 
 namespace json_loader {
 
@@ -14,26 +15,26 @@ model::Game LoadGame(const std::filesystem::path& json_path) {
     // Загрузить модель игры из файла
     model::Game game;
     auto default_dog_speed = jsn_values.as_object().contains("defaultDogSpeed") ?
-            jsn_values.as_object().at("defaultDogSpeed").as_double() : 1.0;
+            jsn_values.as_object().at(json_tags::defaultDogSpeed).as_double() : 1.0;
 
-	auto jsn_maps = jsn_values.as_object()["maps"].as_array();
+	auto jsn_maps = jsn_values.as_object().at(json_tags::maps).as_array();
 	for ( auto const& jsn_map : jsn_maps ) {
 		auto map = LoadMap(jsn_map, default_dog_speed);
 		
 		// Добавим дороги
-		auto roads = jsn_map.as_object().at("roads").as_array();
+		auto roads = jsn_map.as_object().at(json_tags::roads).as_array();
 		for ( auto const& jsn_road : roads) {
 			map.AddRoad(LoadRoad(jsn_road));
 		}
 
 		// Добавим здания
-		auto jsn_bldngs = jsn_map.as_object().at("buildings").as_array();
+		auto jsn_bldngs = jsn_map.as_object().at(json_tags::buildings).as_array();
 		for ( auto const& jsn_bldg : jsn_bldngs ) {
 			map.AddBuilding(LoadBuilding(jsn_bldg));
 		}
 
 		// Добавим Офисы
-		auto jsn_ofcs = jsn_map.as_object().at("offices").as_array();
+		auto jsn_ofcs = jsn_map.as_object().at(json_tags::offices).as_array();
 		for ( auto const& jsn_ofc : jsn_ofcs ) {
 			map.AddOffice(LoadOffice(jsn_ofc));
 		}
@@ -55,47 +56,47 @@ std::stringstream LoadFile(const std::filesystem::path& json_path) {
 
 model::Map LoadMap(const json::value& jsn_value, const double& default_dog_speed) {
     auto dg_spd = jsn_value.as_object().contains("dogSpeed") ?
-                      jsn_value.as_object().at("dogSpeed").as_double() : default_dog_speed;
-	auto jsn_id = jsn_value.as_object().at("id").as_string().c_str();
-	auto jsn_name = jsn_value.as_object().at("name").as_string().c_str();
+                      jsn_value.as_object().at(json_tags::dogSpeed).as_double() : default_dog_speed;
+	auto jsn_id = jsn_value.as_object().at(json_tags::id).as_string().c_str();
+	auto jsn_name = jsn_value.as_object().at(json_tags::name).as_string().c_str();
 	return { model::Map{ model::Map::Id{jsn_id}, jsn_name, dg_spd } };
 }
 
 model::Road LoadRoad(const json::value& jsn_value) {
-	auto x0 = json::value_to<model::Coord>(jsn_value.as_object().at("x0"));
-	auto y0 = json::value_to<model::Coord>(jsn_value.as_object().at("y0"));
+	auto x0 = json::value_to<model::Coord>(jsn_value.as_object().at(json_tags::x0));
+	auto y0 = json::value_to<model::Coord>(jsn_value.as_object().at(json_tags::y0));
 	model::Point start { x0, y0 };
-	if ( jsn_value.as_object().if_contains("x1")) {
-		auto x1 = json::value_to<model::Coord>(jsn_value.as_object().at("x1"));
+	if ( jsn_value.as_object().if_contains(json_tags::x1)) {
+		auto x1 = json::value_to<model::Coord>(jsn_value.as_object().at(json_tags::x1));
 		return model::Road { model::Road::HORIZONTAL, start, x1 };			
 	} else {
-		auto y1 = json::value_to<model::Coord>(jsn_value.as_object().at("y1"));
+		auto y1 = json::value_to<model::Coord>(jsn_value.as_object().at(json_tags::y1));
 		return model::Road { model::Road::VERTICAL, start, y1 };
 	}
 }
 
 model::Building LoadBuilding(const json::value& jsn_value) {
-	auto x = json::value_to<model::Coord>(jsn_value.as_object().at("x"));
-	auto y = json::value_to<model::Coord>(jsn_value.as_object().at("y"));
+	auto x = json::value_to<model::Coord>(jsn_value.as_object().at(json_tags::x));
+	auto y = json::value_to<model::Coord>(jsn_value.as_object().at(json_tags::y));
 	
 	model::Point point { x, y };
 	
-	auto w = json::value_to<model::Dimension>(jsn_value.as_object().at("w"));
-	auto h = json::value_to<model::Dimension>(jsn_value.as_object().at("h"));
+	auto w = json::value_to<model::Dimension>(jsn_value.as_object().at(json_tags::w));
+	auto h = json::value_to<model::Dimension>(jsn_value.as_object().at(json_tags::h));
 	model::Size size { w, h};
 	return model::Building { model::Rectangle {point, size} };
 
 }
 
 model::Office LoadOffice(const json::value& jsn_value) {
-	auto jsn_id = jsn_value.as_object().at("id").as_string().c_str();
+	auto jsn_id = jsn_value.as_object().at(json_tags::id).as_string().c_str();
 	model::Office::Id id { jsn_id };
-	auto x = json::value_to<model::Coord>(jsn_value.as_object().at("x"));
-	auto y = json::value_to<model::Coord>(jsn_value.as_object().at("y"));
+	auto x = json::value_to<model::Coord>(jsn_value.as_object().at(json_tags::x));
+	auto y = json::value_to<model::Coord>(jsn_value.as_object().at(json_tags::y));
 	model::Point position { x, y };
 
-	auto ofsX = json::value_to<model::Dimension>(jsn_value.as_object().at("offsetX"));
-	auto ofsY = json::value_to<model::Dimension>(jsn_value.as_object().at("offsetY"));
+	auto ofsX = json::value_to<model::Dimension>(jsn_value.as_object().at(json_tags::offsetX));
+	auto ofsY = json::value_to<model::Dimension>(jsn_value.as_object().at(json_tags::offsetY));
 	model::Offset offset { ofsX, ofsY };
 	return model::Office {id, position, offset};	
 }

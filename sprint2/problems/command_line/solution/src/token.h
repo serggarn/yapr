@@ -1,3 +1,4 @@
+#pragma once
 #include <random>
 #include "tagged.h"
 #include <sstream>

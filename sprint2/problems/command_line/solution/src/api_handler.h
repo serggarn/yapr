@@ -7,6 +7,7 @@
 #include "http_types.h"
 #include <sstream>
 #include <optional>
+#include "model/json_tags.h"
 
 namespace api_handler {
 namespace beast = boost::beast;
@@ -22,14 +23,28 @@ using HandlerResult = std::pair<std::string_view, http::response<http::string_bo
 
 class ApiHandler {
 private:
-    std::optional<Token> TryExtractToken(const StringRequest& request);
     bool AllowToken(const Token& token);
 
-    StringResponse MakeUnauthorizedError(const StringRequest& request);
-    StringResponse MakeUnknownTokenError(const StringRequest& request);
-    StringResponse MakeTickError(const StringRequest& request);
-    StringResponse MakeUnallowedMethodError(const StringRequest& request, std::string_view allow_method);
-    StringResponse MakeInvalidEndpointError(const StringRequest& request);
+    static std::optional<Token> TryExtractToken(const StringRequest& request);
+    static StringResponse MakeError(const StringRequest& request, const http::status,
+                                    const std::string& code, const std::string& message);
+    inline static StringResponse MakeUnauthorizedError(const StringRequest& request)
+    { return MakeError(request, http::status::bad_request, "invalidArgument"s, "Failed to parse tick request JSON"s); }
+    static StringResponse MakeUnknownTokenError(const StringRequest& request)
+    { return MakeError(request, http::status::unauthorized, "unknownToken"s, "Player token has not been found"s); }
+    static StringResponse MakeTickError(const StringRequest& request)
+    { return MakeError(request, http::status::bad_request, "invalidArgument"s, "Failed to parse tick request JSON"s); }
+    static StringResponse MakeNameError(const StringRequest& request)
+    { return MakeError(request, http::status::bad_request, "invalidArgument"s, "Invalid name"s); }
+    static StringResponse MakeJoinError(const StringRequest& request)
+    { return MakeError(request, http::status::bad_request, "invalidArgument"s, "Join game request parse error"s); }
+    static StringResponse MakeUnallowedMethodError(const StringRequest& request, std::string_view allow_method);
+    static StringResponse MakeInvalidEndpointError(const StringRequest& request)
+    { return MakeError(request, http::status::bad_request, "badRequest"s, "Invalid endpoint"s); }
+    static StringResponse MakeBadRequestError(const StringRequest& request)
+    { return MakeError(request, http::status::bad_request, "badRequest"s, "Bad request"s); }
+    static StringResponse MakeMapNotFoundError(const StringRequest& request)
+    { return MakeError(request, http::status::not_found, "mapNotFound"s, "Map not found"s); }
 
     template <typename Fn>
     StringResponse ExecuteAuthorized(const StringRequest& request, Fn&& action) {
@@ -52,13 +67,20 @@ private:
 
     StringResponse SetTick(const StringRequest& request);
 
+    StringResponse JoinGameUseCase(const StringRequest& request);
+    StringResponse PlayersGameUseCase(const StringRequest& request);
+    StringResponse ActionGameUseCase(const StringRequest& request);
+    StringResponse StateGameUseCase(const StringRequest& request);
+    StringResponse TickGameUseCase(const StringRequest& request);
+    StringResponse MapsGameUseCase(const StringRequest& request);
+
     bool CheckTestEnv();
 
     void RoadsToJson(const model::Map& map, json::array& jsn_array);
 	void BuildingsToJson(const model::Map& map, json::array& jsn_array);
 	void OfficesToJson(const model::Map& map, json::array& jsn_array);	
 	void MapsToStr(std::string& answ);
-	int MapToStr(std::string_view map_id, std::string& answ);
+	std::optional<std::string> MapToStr(std::string_view map_id);
 public:
 	ApiHandler (net::io_context& ioc, model::Game& game, player::Players& players) : ioc_{ioc}, game_{game}, players_{players} {}
 	template <typename Body, typename Allocator>
@@ -70,205 +92,31 @@ public:
         std::string_view trg = req.target();
         std::string_view allow_method;
         auto content_type = ContentType::APPL_JSON;
+        StringResponse response; 
 
         if (trg == UriType::URI_JOIN) {
-            json::object answ_obj;
-            switch (req.method()) {
-                case http::verb::post: {
-                    try {
-                        auto jsn_values = json::parse(req.body());
-                        auto userName = jsn_values.as_object()["userName"].as_string();
-                        auto mapId = jsn_values.as_object()["mapId"].as_string();
-                        std::cout << "req: " << mapId << "; " << userName << std::endl;
-                        if (userName.size() == 0) {
-                            status = http::status::bad_request;
-                            answ_obj["code"] = "invalidArgument";
-                            answ_obj["message"] = "Invalid name";
-                        } else if (game_.FindMap(model::Map::Id{mapId.c_str()}) == nullptr) {
-                            status = http::status::not_found;
-                            answ_obj["code"] = "mapNotFound";
-                            answ_obj["message"] = "Map not found";
-                        } else {
-                            status = http::status::ok;
-                            auto name = userName.c_str();
-                            auto map = game_.FindMap(model::Map::Id{mapId.c_str()});
-                            auto dog_id = model::Dog::Id{name};
-// 							player::Dog dog {player::Dog::Id{userName}, userName };
-                            std::shared_ptr<model::GameSession> gs{nullptr};
-                            // если уже есть сессия, то найдём её
-                            if (game_.FindMap(model::Map::Id{mapId.c_str()}) != nullptr) {
-                                for (auto& session: game_.GetSessions()) {
-                                    if (*(session->GetMap()->GetId()) == mapId) {
-                                        std::cout << "find gs " << session->GetDogs().size() << std::endl;
-                                        gs = session;
-                                    }
-                                }
-                            }
-                            if (gs == nullptr) {
-                                std::cout << "gs == nullptr" <<std::endl;
-                                model::GameSession gm_ses{model::GameSession::Id{mapId.c_str()}, map};
-                                game_.AddSession(gm_ses);
-                                gs = game_.FindGameSession(model::GameSession::Id{mapId.c_str()});
-                            }
-                            gs->AddDog(name);
-                            auto dg = gs->FindDog(model::Dog::Id{name});
-                            std::cout << "size of dogs: " << gs->GetDogs().size() << std::endl;
-                            std::cout << "size of maps: " << game_.GetMaps().size() << std::endl;
-                            std::cout << "size of sessions: " << game_.GetSessions().size() << std::endl;
-                            auto token = players_.AddPlayer(dg, gs);
-                            answ_obj["authToken"] = *(token.second);
-                            answ_obj["playerId"] = *(token.first);
-                        }
-                    }
-                    catch (...) {
-                        status = http::status::bad_request;
-                        answ_obj["code"] = "invalidArgument"s;
-                        answ_obj["message"] = "Join game request parse error"s;
-                    }
-
-                    break;
-                }
-                default: {
-                    status = http::status::method_not_allowed;
-                    answ_obj["code"] = "invalidMethod"s;
-                    answ_obj["message"] = "Only POST method is expected"s;
-                    allow_method = "POST"sv;
-                    break;
-                }
-            }
-            answer = json::serialize(answ_obj);
-            body = answer;
-            auto resp = MakeStringResponse(status, body, req.version(), req.keep_alive(),
-                                           content_type, allow_method);
-
-            HandlerResult res = std::make_pair(content_type, std::move(resp));
-            return res;
-
+            response  = JoinGameUseCase(req);
         }
         else if (trg == UriType::URI_PLAYERS) {
-            StringResponse resp;
-            switch (req.method()) {
-                case http::verb::get:
-                case http::verb::head: {
-                    try {
-                        resp = GetPlayers(req);
-                    } catch (...) {
-                        resp = MakeUnauthorizedError(req);
-                    }
-                    break;
-                }
-                default: {
-                    resp = MakeUnallowedMethodError(req, "GET, HEAD"sv);
-                    break;
-                }
-            }
-            HandlerResult res = std::make_pair(content_type, std::move(resp));
-            return res;
+            response  = PlayersGameUseCase(req);
         }
         else if (trg == UriType::URI_STATE) {
-            StringResponse resp;
-            switch (req.method()) {
-                case http::verb::get:
-                case http::verb::head: {
-                    try {
-                        resp = GetGameState(req);
-                    } catch (...) {
-                        resp = MakeUnauthorizedError(req);
-                    }
-                    break;
-                }
-                default: {
-                    resp = MakeUnallowedMethodError(req, "GET, HEAD"sv);
-                    break;
-                }
-            }
-            HandlerResult res = std::make_pair(content_type, std::move(resp));
-            return res;
+            response  = StateGameUseCase(req);
         }
         else if (trg == UriType::URI_ACTION) {
-            StringResponse resp;
-            switch (req.method()) {
-                case http::verb::post: {
-                    try {
-                        resp = SetPlayerAction(req);
-                    } catch (...) {
-                        resp = MakeUnauthorizedError(req);
-                    }
-                    break;
-                }
-                default: {
-                    resp = MakeUnallowedMethodError(req, "POST"sv);
-                    break;
-                }
-            }
-            HandlerResult res = std::make_pair(content_type, std::move(resp));
-            return res;
+            response  = ActionGameUseCase(req);
         }
         else if (trg == UriType::URI_TICK) {
-            StringResponse resp;
-            if ( ! CheckTestEnv() )
-                resp = MakeInvalidEndpointError(req);
-            else
-                switch (req.method()) {
-                    case http::verb::post: {
-                        try {
-                            resp = SetTick(req);
-                        } catch (...) {
-                            resp = MakeTickError(req);
-                        }
-                        break;
-                    }
-                    default: {
-                        resp = MakeUnallowedMethodError(req, "POST"sv);
-                        break;
-                    }
-                }
-            HandlerResult res = std::make_pair(content_type, std::move(resp));
-            return res;
-        }else {
-            StringResponse resp;
-            switch (req.method()) {
-
-                case http::verb::get: {
-                    status = http::status::ok;
-
-                    if (trg.starts_with(UriType::URI_MAPS)) {
-                        if (trg == UriType::URI_MAPS) {
-                            MapsToStr(answer);
-                        } else {
-                            auto map_id = trg.substr(UriType::URI_MAPS.size());
-                            map_id.remove_prefix(std::min(map_id.find_first_not_of("/"), map_id.size()));
-                            if (MapToStr(map_id, answer) != 0) {
-                                // карту не нашли
-                                status = http::status::not_found;
-                                json::object obj;
-                                obj["code"] = "mapNotFound"s;
-                                obj["message"] = "Map not found"s;
-                                answer = json::serialize(obj);
-                            }
-                        }
-                    } else if (trg.starts_with(UriType::URI_START)) {
-                        status = http::status::bad_request;
-                        json::object obj;
-                        obj["code"] = "badRequest"s;
-                        obj["message"] = "Bad request"s;
-                        answer = json::serialize(obj);
-                    }
-                    body = answer;
-                    rqs = GET;
-                    break;
-                }
-                default: {
-                    resp = MakeUnallowedMethodError(req, "GET"sv);
-                    break;
-                }
-            }
-
-            resp = MakeStringResponse(status, body, req.version(), req.keep_alive());
-
-            HandlerResult res = std::make_pair(ContentType::TEXT_HTML, std::move(resp));
-            return res;
+            response  = TickGameUseCase(req);
         }
+        else if (trg.starts_with(UriType::URI_MAPS)) {
+            response = MapsGameUseCase(req);
+        } else if (trg.starts_with(UriType::URI_START)) {
+            response = MakeBadRequestError(req);
+        }
+        
+        HandlerResult res = std::make_pair(ContentType::TEXT_HTML, std::move(response));
+        return res;
 	}
 	
 private:

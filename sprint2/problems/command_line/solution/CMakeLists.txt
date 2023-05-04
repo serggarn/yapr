@@ -31,40 +31,23 @@ add_compile_definitions(BOOST_JSON_USE_STD_STRING_VIEW)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-add_executable(game_server
-	src/main.cpp
-	src/http_server.cpp
-	src/http_server.h
-	src/sdk.h
-	src/model.h
-	src/model.cpp
-	src/tagged.h
-	src/boost_json.cpp
-	src/json_loader.h
-	src/json_loader.cpp
-	src/request_handler.cpp
-	src/request_handler.h
-	src/api_handler.cpp
-	src/api_handler.h
-	src/file_handler.cpp
-	src/file_handler.h
-	src/http_types.h
-	src/encode.h
-	src/logger.cpp
-	src/logger.h
-	src/response.cpp
-	src/response.h
-	src/game_session.h
-	src/game_session.cpp
-	src/dog.h
-	src/dog.cpp
-	src/player.h
-	src/players.h
-	src/players.cpp
-	src/game.h
-	src/game.cpp
-	src/token.h
-        src/player.cpp src/request.cpp src/request.h src/system/cmd_line.h src/system/settings.h src/system/settings.cpp src/system/cmd_line.cpp src/app_layer/ticker.cpp src/app_layer/ticker.h)
+set(PROJECT_DIR .)
+
+file(GLOB_RECURSE PROJECT_SOURCES
+		${PROJECT_DIR}/src/*.cpp
+		${PROJECT_DIR}/src/system/*.cpp
+		${PROJECT_DIR}/src/app_layer/*.cpp
+		)
+
+SET (PROJECT_HEADERS
+		${PROJECT_DIR}/src/app_layer/*.h
+		${PROJECT_DIR}/src/system/*.h
+		${PROJECT_DIR}/src/*.h
+		)
+
+add_executable(game_server ${PROJECT_SOURCES})
+
+target_include_directories(game_server PRIVATE ${PROJECT_HEADERS})
 
 # используем "импортированную" цель CONAN_PKG::boost
 target_include_directories(game_server PRIVATE CONAN_PKG::boost)

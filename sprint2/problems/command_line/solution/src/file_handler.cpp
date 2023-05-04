@@ -9,7 +9,7 @@ namespace file_handler {
 Files::Files(std::string_view _base_path)
 {
 	base_path = fs::absolute(fs::path{_base_path});
-	if ( not fs::is_directory(base_path) ) {
+	if ( ! fs::is_directory(base_path) ) {
 		std::stringstream error_msg;
 		error_msg << "Diriectory " << base_path << " not found";
 		throw std::runtime_error(error_msg.str());
