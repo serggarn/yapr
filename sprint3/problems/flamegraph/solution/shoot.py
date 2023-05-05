@@ -51,7 +51,7 @@ def make_shots():
 server = run(start_server())
 #print(server.pid)
 
-perf_record = run("perf record -p " + str(server.pid) + " -o perf.data -ag")
+perf_record = run("perf record -F 100000 -p " + str(server.pid) + " -o perf.data -ag")
 #print("perf end")
 make_shots()
 stop(perf_record)
