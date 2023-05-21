@@ -66,7 +66,10 @@ void GameSession::AddDog(const std::string& dog_name)
 }
 
 void GameSession::AddLoot() {
-    auto loot = Loot(GetRandomLootType(), GetRandomPointFromRoads());
+    auto point = GetRandomPointFromRoads();
+    auto position = Position{static_cast<CoordReal>(point.x),
+                             static_cast<CoordReal>(point.y)};
+    auto loot = Loot(GetRandomLootType(), position);
     map_->AddLoot(loot);
 }
 

@@ -80,7 +80,7 @@ private:
 	void BuildingsToJson(const model::Map& map, json::array& jsn_array);
 	void OfficesToJson(const model::Map& map, json::array& jsn_array);
     void LootDefinitionsToJson(const model::Map& map, json::array& jsn_array);
-    void LootsToJson(const model::Map& map, json::array& jsn_array);
+    void LootsToJson(const model::Map& map, json::object& jsn_array);
 	void MapsToStr(std::string& answ);
     json::object PlayerStateToJson(const Player& player);
 	std::optional<std::string> MapToStr(std::string_view map_id);

@@ -90,7 +90,7 @@ void ApiHandler::LootDefinitionsToJson(const model::Map &map, json::array &jsn_a
     }
 }
 
-void ApiHandler::LootsToJson(const model::Map &map, json::array &jsn_array) {
+void ApiHandler::LootsToJson(const model::Map &map, json::object &jsn_array) {
     size_t index = 0;
     for (auto const& loot : map.GetLoots() ) {
         auto json_dict = json::object();
@@ -98,8 +98,10 @@ void ApiHandler::LootsToJson(const model::Map &map, json::array &jsn_array) {
         auto point = loot.GetPosition();
         json_object[json_tags::pos] = json::array({point.x, point.y});
         json_object[json_tags::type] = loot.GetType();
-        json_dict[std::to_string(index)] = json_object;
-        jsn_array.push_back(json_dict);
+//        json_dict[std::to_string(index)] = json_object;
+//        jsn_array.push_back(json_dict);
+        jsn_array[std::to_string(index)] = json_object;
+        index++;
     }
 }
 
@@ -188,7 +190,7 @@ StringResponse ApiHandler::GetGameState(const StringRequest& request) {
             answ_obj[json_tags::lostObjects] = json::array();
         else {
             auto map = playrs.begin()->second.GetSession()->GetMap();
-            auto loots_jsn = json::array();
+            auto loots_jsn = json::object();
             LootsToJson(*map, loots_jsn);
             answ_obj[json_tags::lostObjects] = loots_jsn;
         }

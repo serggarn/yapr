@@ -127,7 +127,7 @@ public:
     using Id = util::Tagged<std::uint64_t, Loot>;
     using Type = uint64_t;
 
-    Loot(Type type, Point position) noexcept
+    Loot(Type type, Position position) noexcept
         : id_{next_id++}
         , type_{type}
         , position_{position} { }
@@ -136,7 +136,7 @@ public:
         return id_;
     }
 
-    Point GetPosition() const noexcept {
+    Position GetPosition() const noexcept {
         return position_;
     }
 
@@ -146,7 +146,7 @@ public:
 
 private:
     Id id_;
-    Point position_;
+    Position position_;
     Type type_;
     static uint64_t next_id;
 };
