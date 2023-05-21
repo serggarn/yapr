@@ -91,11 +91,15 @@ void ApiHandler::LootDefinitionsToJson(const model::Map &map, json::array &jsn_a
 }
 
 void ApiHandler::LootsToJson(const model::Map &map, json::array &jsn_array) {
+    size_t index = 0;
     for (auto const& loot : map.GetLoots() ) {
+        auto json_dict = json::object();
         auto json_object = json::object();
+        auto point = loot.GetPosition();
+        json_object[json_tags::pos] = json::array({point.x, point.y});
         json_object[json_tags::type] = loot.GetType();
-        json_object[json_tags::pos] = json::array({loot.GetPosition().x, loot.GetPosition().y});
-        jsn_array.push_back(json_object);
+        json_dict[std::to_string(index)] = json_object;
+        jsn_array.push_back(json_dict);
     }
 }
 
@@ -360,7 +364,8 @@ StringResponse ApiHandler::MapsGameUseCase(const StringRequest& request) {
     std::string answer;
     switch (request.method()) {
 
-        case http::verb::get: {
+        case http::verb::get:
+        case http::verb::head: {
             if (request.target() == UriType::URI_MAPS) {
                 MapsToStr(answer);
                 return MakeStringResponse(http::status::ok, answer, request.version(), request.keep_alive());
@@ -379,7 +384,7 @@ StringResponse ApiHandler::MapsGameUseCase(const StringRequest& request) {
             break;
         }
         default: {
-            return MakeUnallowedMethodError(request, "GET"sv);
+            return MakeUnallowedMethodError(request, "GET, HEAD"sv);
             break;
         }
     }

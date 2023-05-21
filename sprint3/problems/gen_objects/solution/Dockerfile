@@ -13,7 +13,7 @@ RUN apt update && \
 # копируем conanfile.txt в контейнер и запускаем conan install
 COPY conanfile.txt /app/
 RUN mkdir /app/build && cd /app/build && \
-    conan install .. -s compiler.libcxx=libstdc++11 -s build_type=Release
+    conan install .. -s build_type=Release -s compiler.libcxx=libstdc++11 
 
 # только после этого копируем остальные иходники
 COPY ./src /app/src
@@ -40,5 +40,5 @@ COPY ./data /app/data
 COPY ./static /app/static
 
 # Запускаем игровой сервер
-ENTRYPOINT ["/app/game_server", "/app/data/config.json", "/app/static"] 
+ENTRYPOINT ["/app/game_server", "-c", "/app/data/config.json", "-w", "/app/static"] 
 
