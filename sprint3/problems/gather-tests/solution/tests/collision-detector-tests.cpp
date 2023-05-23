@@ -60,7 +60,7 @@ TEST_CASE("FindGather"){
         }
         SECTION(" 2 catch difference gatherer") {
             std::vector<Gatherer> gatherer {
-                    {{0, 19}, {7, 19}, 1},
+                    {{0, 19}, {35, 19}, 1},
                     {{0, 25}, {10, 15}, 1}
             };
             FindGatherEventsTests findtest(items, gatherer);
