@@ -7,6 +7,6 @@
 
 LootDefinition::Value LootDefinition::GetValue() const noexcept{
     return defenition_.contains(json_tags::value)
-        ? defenition_.at(json_tags::value).as_uint64()
+        ? defenition_.at(json_tags::value).as_int64()
         : 0;
 }
