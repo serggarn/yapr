@@ -8,6 +8,7 @@
 #include "../model/model_serialization.h"
 #include "../token.h"
 #include <fstream>
+#include <filesystem>
 
 using namespace serialization;
 
@@ -27,7 +28,8 @@ void Backup::Init(std::string path, std::chrono::milliseconds period) {
 
 bool Backup::Save(const model::Game& game_, const player::Players& players_) {
 
-    std::ofstream ofs(path_);
+    std::string tmp_file = path_ + ".tmp";
+    std::ofstream ofs(tmp_file);
     {
         boost::archive::text_oarchive oa{ofs};
         for ( const auto& map : game_.GetMaps() ) {
@@ -65,7 +67,9 @@ bool Backup::Save(const model::Game& game_, const player::Players& players_) {
 //            PlayerRepr player_rep(player.second);
 //            oa << player_rep;
         }
+        ofs.close();
     }
+    std::filesystem::rename(tmp_file, path_);
     return true;
 }
 

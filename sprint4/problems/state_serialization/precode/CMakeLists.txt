@@ -3,6 +3,14 @@ cmake_minimum_required(VERSION 3.11)
 project(game_server CXX)
 set(CMAKE_CXX_STANDARD 20)
 
+# Сгенерируем конфигурацию, если нет
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
+	message(STATUS, "conan install... ")
+	# 	execute_process(COMMAND cd ${CMAKE_BINARY_DIR})
+	execute_process(COMMAND conan install .. -s build_type=Debug  -s compiler.libcxx=libstdc++11)
+	execute_process(COMMAND conan install .. -s build_type=Release -s compiler.libcxx=libstdc++11)
+endif()
+
 include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
 conan_basic_setup(TARGETS)
 
