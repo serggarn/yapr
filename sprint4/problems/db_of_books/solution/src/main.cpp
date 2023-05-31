@@ -46,9 +46,10 @@ int main(int argc, const char* argv[]) {
                 auto payload_obj = json_obj.at(tags::payload).as_object();
                 if ( ! payload_obj.at(tags::ISBN).is_null() ) {
                     auto ISBN_STR = payload_obj.at(tags::ISBN).as_string();
-                    auto query_text = "SELECT ISBN FROM books WHERE books.ISBN = '" + w.esc(ISBN_STR) + "'";
-                    auto isbn = w.query_value<std::optional<std::string>>(query_text);
-                    if (isbn != std::nullopt && isbn.value() == ISBN_STR) {
+                    auto query_text = "SELECT ISBN FROM books WHERE ISBN = '" + w.esc(ISBN_STR) + "'";
+                    auto isbn = w.query01<std::optional<std::string>>(query_text);
+//                    std::cout << isbn<<std::endl;
+                    if ( isbn != std::nullopt && get<0>(isbn.value()) == ISBN_STR ) {
                         json::object result;
                         result[tags::result] = tags::result_map.at(false);
                         std::cout << json::serialize(result);
