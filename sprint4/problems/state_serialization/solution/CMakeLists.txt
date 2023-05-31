@@ -16,7 +16,7 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
 	execute_process(COMMAND conan install .. -s build_type=Release -s compiler.libcxx=libstdc++11)
 endif()
 
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 # обратите внимание на аргумент TARGETS у команды conan_basic_setup
 include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
