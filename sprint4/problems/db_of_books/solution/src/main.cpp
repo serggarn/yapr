@@ -38,43 +38,58 @@ int main(int argc, const char* argv[]) {
         bool exit = false;
         do {
             std::string request;
-            std::cin >> request;
-            auto json_obj = json::parse(request).as_object();
-            if ( json_obj[tags::action].as_string() == "add_book" ) {
+            std::getline(std::cin, request);
+            auto json_obj_ = json::parse(request);
+            auto json_obj = json_obj_.as_object();
+            if ( json_obj.at(tags::action).as_string() == "add_book" ) {
                 pqxx::work w(conn);
-                auto payload_obj = json_obj[tags::payload].as_object();
-                if ( payload_obj.contains(tags::ISBN) ) {
-                    w.exec("INSERT INTO books (title, author, year, ISBN) VALUES ('" +
-                           w.esc(payload_obj[tags::title].as_string()) + "', " +
-                           w.esc(payload_obj[tags::author].as_string()) + "', " +
-                           std::to_string(payload_obj[tags::year].as_uint64()) + "', " +
-                           w.esc(payload_obj[tags::ISBN].as_string()) + ")");
+                auto payload_obj = json_obj.at(tags::payload).as_object();
+                if ( ! payload_obj.at(tags::ISBN).is_null() ) {
+                    auto ISBN_STR = payload_obj.at(tags::ISBN).as_string();
+                    auto query_text = "SELECT ISBN FROM books WHERE books.ISBN = '" + w.esc(ISBN_STR) + "'";
+                    auto isbn = w.query_value<std::optional<std::string>>(query_text);
+                    if (isbn != std::nullopt && isbn.value() == ISBN_STR) {
+                        json::object result;
+                        result[tags::result] = tags::result_map.at(false);
+                        std::cout << json::serialize(result);
+                        continue;
+                    } else {
+                        w.exec("INSERT INTO books (title, author, year, ISBN) VALUES ('" +
+                               w.esc(payload_obj.at(tags::title).as_string()) + "', '" +
+                               w.esc(payload_obj.at(tags::author).as_string()) + "', " +
+                               std::to_string(payload_obj.at(tags::year).as_int64()) + ", '" +
+                               w.esc(payload_obj.at(tags::ISBN).as_string()) + "')");
+                    }
                 }
                 else {
-                    w.exec("INSERT INTO books (title, author, year, ISBN) VALUES ('" +
-                           w.esc(payload_obj[tags::title].as_string()) + "', " +
-                           w.esc(payload_obj[tags::author].as_string()) + "', " +
-                           std::to_string(payload_obj[tags::year].as_uint64()) + ")");
+                    w.exec("INSERT INTO books (title, author, year) VALUES ('" +
+                           w.esc(payload_obj.at(tags::title).as_string()) + "', '" +
+                           w.esc(payload_obj.at(tags::author).as_string()) + "', " +
+                           std::to_string(payload_obj.at(tags::year).as_int64()) + ")");
                 }
                 w.commit();
                 json::object result;
                 result[tags::result] = tags::result_map.at(true);
                 std::cout << json::serialize(result);
             }
-            else if (json_obj[tags::action].as_string() == "all_books") {
+            else if (json_obj.at(tags::action).as_string() == "all_books") {
                 pqxx::read_transaction r(conn);
                 {
                     auto query_text = "SELECT id, title, author, year, ISBN FROM books ORDER BY year DESC, title, author, ISBN"_zv;
 
                     json::array result;
                 // Выполняем запрос и итерируемся по строкам ответа
-                for (auto [id, title, author, year, ISBN]: r.query<int, std::string, std::string, int, std::string>(query_text)) {
+                for (auto [id, title, author, year, ISBN]: r.query<int, std::string, std::string, int, std::optional<std::string>>(query_text)) {
                     json::object row;
                     row[tags::id] = id;
                     row[tags::title] = title;
                     row[tags::author] = author;
                     row[tags::year] = year;
-                    row[tags::ISBN] = ISBN;
+                    if ( ISBN == std::nullopt ) {
+                        row[tags::ISBN] = nullptr;
+                    } else {
+                        row[tags::ISBN] = ISBN.value();
+                    }
                     result.push_back(row);
                 }
                 std::cout << json::serialize(result);
