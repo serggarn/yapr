@@ -92,8 +92,8 @@ add_executable(state_serialization_tests
 		src/model/model.h
 		src/model/model.cpp
 		src/model/model_serialization.h
-		src/system/backup.h
-		src/system/backup.cpp
+#		src/system/backup.h
+#		src/system/backup.cpp
 		)
 target_link_libraries(state_serialization_tests CONAN_PKG::catch2 CONAN_PKG::boost)
 
