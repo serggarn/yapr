@@ -48,8 +48,7 @@ int main(int argc, const char* argv[]) {
                     auto ISBN_STR = payload_obj.at(tags::ISBN).as_string();
                     auto query_text = "SELECT ISBN FROM books WHERE ISBN = '" + w.esc(ISBN_STR) + "'";
                     auto isbn = w.query01<std::optional<std::string>>(query_text);
-//                    std::cout << isbn<<std::endl;
-                    if ( isbn != std::nullopt && get<0>(isbn.value()) == ISBN_STR ) {
+                    if ( ISBN_STR.size()>13 || (isbn != std::nullopt && get<0>(isbn.value()) == ISBN_STR) ) {
                         json::object result;
                         result[tags::result] = tags::result_map.at(false);
                         std::cout << json::serialize(result);
@@ -59,7 +58,7 @@ int main(int argc, const char* argv[]) {
                                w.esc(payload_obj.at(tags::title).as_string()) + "', '" +
                                w.esc(payload_obj.at(tags::author).as_string()) + "', " +
                                std::to_string(payload_obj.at(tags::year).as_int64()) + ", '" +
-                               w.esc(payload_obj.at(tags::ISBN).as_string()) + "')");
+                               w.esc(ISBN_STR) + "')");
                     }
                 }
                 else {
@@ -71,7 +70,7 @@ int main(int argc, const char* argv[]) {
                 w.commit();
                 json::object result;
                 result[tags::result] = tags::result_map.at(true);
-                std::cout << json::serialize(result);
+                std::cout << json::serialize(result) << std::endl;
             }
             else if (json_obj.at(tags::action).as_string() == "all_books") {
                 pqxx::read_transaction r(conn);
@@ -93,7 +92,7 @@ int main(int argc, const char* argv[]) {
                     }
                     result.push_back(row);
                 }
-                std::cout << json::serialize(result);
+                std::cout << json::serialize(result) << std::endl;
             }
             }
             else if (json_obj[tags::action].as_string() == "exit") {
