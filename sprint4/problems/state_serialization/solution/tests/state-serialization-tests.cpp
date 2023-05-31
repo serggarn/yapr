@@ -5,6 +5,8 @@
 
 #include "../src/model/model.h"
 #include "../src/model/model_serialization.h"
+#include "../src/token.h"
+
 //#include "../src/system/backuph.h"
 
 using namespace model;
@@ -32,6 +34,28 @@ SCENARIO_METHOD(Fixture, "Point serialization") {
                 geom::Point2D restored_point;
                 input_archive >> restored_point;
                 CHECK(p == restored_point);
+            }
+        }
+    }
+}
+
+SCENARIO_METHOD(Fixture, "Token Serialization") {
+    GIVEN(" token") {
+        const auto token = [] {
+            Token token{"e85ea4205f3560dab04b64b09b8346c9"};
+            return token;
+        }();
+
+        WHEN("token is serialized") {
+            {
+                output_archive << *token;
+            }
+            THEN("it can be serialized") {
+                InputArchive input_archive{strm};
+                std::string token_rest;
+                input_archive >> token_rest;
+                CHECK(token_rest.length() == token_length);
+                CHECK(token == Token{token_rest});
             }
         }
     }

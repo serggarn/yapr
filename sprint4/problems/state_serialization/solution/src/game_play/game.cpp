@@ -142,7 +142,16 @@ void Game::Tick(const std::chrono::milliseconds delta, const player::Players& pl
             gs->AddLoot();
         }
     }
-    std::cout << "finc Tick end" << std::endl;
+    for ( const auto& map : GetMaps() ) {
+//            std::cout <<"03" <<std::endl;
+
+        // write count of loots on map
+//        oa << map.GetLoots().size();
+        std::cout << "map: " << *map.GetId() << std::endl;
+        auto loots = map.GetLoots();
+        std::cout << "count of loots in map: " << map.GetLoots().size() << "; " << loots.size() << std::endl;
+    }
+        std::cout << "finc Tick end" << std::endl;
 }
 
 } //namespace model

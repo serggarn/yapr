@@ -84,8 +84,8 @@ std::cout << "restore ok" <<std::endl;
             http_handler::RequestHandler handler {ioc, game_strand, game, files, players};
             http_handler::LoggingRequestHandler<http_handler::RequestHandler> logging_handler{handler};
 
+            std::cout << "IsSaveState(): " << sett->IsSaveState() <<std::endl;
             // Запустим timer
-
             if ( ! sett->IsTestEnv() ) {
                 auto handle_tick
                         = [&game, &players](std::chrono::milliseconds _ms) {

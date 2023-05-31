@@ -11,6 +11,7 @@ struct TokenTag {
 }  // namespace detail
 
 using Token = util::Tagged<std::string, detail::TokenTag>;
+static const size_t token_length = 32;
 
 class PlayerTokens {
 public:
@@ -18,8 +19,8 @@ public:
 		auto g1 = generator1_();
 		auto g2 = generator2_();
 		std::stringstream ss;
-		ss << std::hex << std::setfill('0') << std::setw(16) << g1;
-		ss << std::hex << std::setfill('0') << std::setw(16) << g2;
+		ss << std::hex << std::setfill('0') << std::setw(token_length / 2) << g1;
+		ss << std::hex << std::setfill('0') << std::setw(token_length / 2) << g2;
 //        std::cout << "token: " << ss.str() << std::endl;
 		return Token{ss.str()};
 	}

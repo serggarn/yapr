@@ -1,6 +1,7 @@
 #include "api_handler.h"
 #include "../system/settings.h"
 #include "../json/json_tags.h"
+#include "../system/backup.h"
 
 
 namespace api_handler {
@@ -232,7 +233,20 @@ StringResponse ApiHandler::SetTick(const StringRequest& request) {
     auto delta = jsn_values.as_object().at(json_tags::timeDelta).as_int64();
     std::string answer = json::serialize(answ_obj);
     std::cout << "Tick start" << std::endl;
-    game_.Tick(std::chrono::milliseconds(delta), players_);
+    auto ms = std::chrono::milliseconds(delta);
+    game_.Tick(ms, players_);
+    if ( settings::Settings::GetInstance()->IsSaveState() ) {
+        for ( const auto& map : game_.GetMaps() ) {
+//            std::cout <<"03" <<std::endl;
+
+            // write count of loots on map
+//            oa << map.GetLoots().size();
+            std::cout << "map: " << *map.GetId() << std::endl;
+            auto loots = map.GetLoots();
+            std::cout << "count of loots in map: " << map.GetLoots().size() << "; " << loots.size() << std::endl;
+        }
+        Backup::GetInstance()->TrySave(ms, game_, players_);
+    }
     std::cout << "Tick end" << std::endl;
     return  MakeStringResponse(status, answer, request.version(), request.keep_alive());
 }

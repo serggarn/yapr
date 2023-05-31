@@ -16,7 +16,7 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
 	execute_process(COMMAND conan install .. -s build_type=Release -s compiler.libcxx=libstdc++11)
 endif()
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 # обратите внимание на аргумент TARGETS у команды conan_basic_setup
 include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
@@ -92,6 +92,7 @@ add_executable(state_serialization_tests
 		src/model/model.h
 		src/model/model.cpp
 		src/model/model_serialization.h
+		src/token.h
 #		src/system/backup.h
 #		src/system/backup.cpp
 		)

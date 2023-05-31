@@ -9,6 +9,7 @@
 #include "../token.h"
 #include <fstream>
 #include <filesystem>
+#include <memory>
 
 using namespace serialization;
 
@@ -32,19 +33,22 @@ bool Backup::Save(const model::Game& game_, const player::Players& players_) {
     std::ofstream ofs(tmp_file);
     {
         boost::archive::text_oarchive oa{ofs};
-        for ( const auto& map : game_.GetMaps() ) {
-//            std::cout <<"03" <<std::endl;
-
-            // write count of loots on map
-            oa << map.GetLoots().size();
-//            std::cout <<"02" <<std::endl;
-            for ( const auto& loot : map.GetLoots() ) {
-                oa << LootRepr(loot);
-//                std::cout <<"01" <<std::endl;
-            }
-        }
+//        for ( const auto& map : game_.GetMaps() ) {
+////            std::cout <<"03" <<std::endl;
+//
+//            // write count of loots on map
+//            oa << map.GetLoots().size();
+//            std::cout << "map: " << *map.GetId()<<std::endl;
+//            auto loots = map.GetLoots();
+//            std::cout << "count of loots in map: " << map.GetLoots().size() << "; " << loots.size() <<std::endl;
+////            std::cout <<"02" <<std::endl;
+//            for ( const auto& loot : map.GetLoots() ) {
+//                oa << LootRepr(loot);
+////                std::cout <<"01" <<std::endl;
+//            }
+//        }
 //        std::cout <<"1" <<std::endl;
-        auto game_sessions = game_.GetSessions();
+//        auto game_sessions = game_.GetSessions();
         // write count of players
         oa << players_.GetPlayers().size();
 //        std::cout <<"2" <<std::endl;
@@ -67,6 +71,22 @@ bool Backup::Save(const model::Game& game_, const player::Players& players_) {
 //            PlayerRepr player_rep(player.second);
 //            oa << player_rep;
         }
+        // write game sessions info
+        for ( const auto& game_session : game_.GetSessions()) {
+            const auto map = game_session->GetMap();
+            // write mapId
+            oa << *map->GetId();
+            // write count of loots on game_session
+            oa << map->GetLoots().size();
+            std::cout << "map: " << *map->GetId() << std::endl;
+            auto loots = map->GetLoots();
+            std::cout << "count of loots in map: " << map->GetLoots().size() << "; " << loots.size() << std::endl;
+//            std::cout <<"02" <<std::endl;
+            for (const auto &loot: map->GetLoots()) {
+                oa << LootRepr(loot);
+//                std::cout <<"01" <<std::endl;
+            }
+        }
         ofs.close();
     }
     std::filesystem::rename(tmp_file, path_);
@@ -78,16 +98,18 @@ bool Backup::Restore(model::Game& game_, player::Players& players_) {
     std::ifstream ifs(path_);
     {
         boost::archive::text_iarchive ia{ifs};
-        for ( auto map : game_.GetMaps() ) {
-            // read count of loots on map
-            size_t count_of_loots;
-            ia >> count_of_loots;
-            for ( int i = 0; i < count_of_loots; i++ ) {
-                LootRepr loot_repr;
-                ia >> loot_repr;
-                map.AddLoot(loot_repr.Restore());
-            }
-        }
+//        for ( auto map : game_.GetMaps() ) {
+//            // read count of loots on map
+//            size_t count_of_loots;
+//            ia >> count_of_loots;
+//            std::cout << "count_of_loots: " << count_of_loots <<std::endl;
+//            for ( int i = 0; i < count_of_loots; i++ ) {
+//                LootRepr loot_repr;
+//                ia >> loot_repr;
+//                map.AddLoot(loot_repr.Restore());
+//                std::cout << "count of loots in map: " << map.GetLoots().size() <<std::endl;
+//            }
+//        }
         // read count of players
         size_t count_of_players;
         ia >> count_of_players;
@@ -131,15 +153,41 @@ bool Backup::Restore(model::Game& game_, player::Players& players_) {
 //            ia >> player_repr;
 //            players_.AddPlayer(Token(token), player_repr.Restore());
         }
+        // read game sessions info
+        size_t count_of_game_sessions = game_.GetSessions().size();
+        for ( ;count_of_game_sessions > 0; count_of_game_sessions--) {
+            std::string mapId;
+            // read mapId
+            ia >> mapId;
+            auto game_session = std::find_if(game_.GetSessions().begin(),
+                                             game_.GetSessions().end(),
+                                             [&mapId](const std::shared_ptr<model::GameSession>& gs) {
+                return gs->GetMap()->GetId() == model::Map::Id{mapId};});
+            size_t count_of_loots;
+            // read count of loots on game_session
+            ia >> count_of_loots;
+//            auto loots = map->GetLoots();
+//            std::cout << "count of loots in map: " << map->GetLoots().size() << "; " << loots.size() << std::endl;
+            std::cout <<"count_of_loots " << count_of_loots <<std::endl;
+            for (;count_of_loots > 0; count_of_loots--) {
+                LootRepr loot_repr;
+                ia >> loot_repr;
+                (*game_session)->GetMap()->AddLoot(loot_repr.Restore());
+//                std::cout <<"01" <<std::endl;
+            }
+        }
+
     }
     return true;
 }
 
 void Backup::TrySave(const std::chrono::milliseconds ms, const model::Game& game, const player::Players& players) {
     ms_ += ms;
+    std::cout << "save? "<< ms_.count() <<std::endl;
     if (ms_ > save_period_) {
         std::cout << "save "<< save_period_.count() <<std::endl;
         ms_ = std::chrono::milliseconds {0};
+//        Save(game, players);
         Save(game, players);
     }
 }
