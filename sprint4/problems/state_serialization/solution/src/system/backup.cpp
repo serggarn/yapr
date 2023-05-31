@@ -134,7 +134,7 @@ bool Backup::Restore(model::Game& game_, player::Players& players_) {
 void Backup::TrySave(const std::chrono::milliseconds ms, const model::Game& game, const player::Players& players) {
     ms_ += ms;
     if (ms_ > save_period_) {
-//        std::cout << "save " <<std::endl;
+        std::cout << "save "<< save_period_.count() <<std::endl;
         ms_ = std::chrono::milliseconds {0};
         Save(game, players);
     }

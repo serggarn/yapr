@@ -26,7 +26,7 @@ namespace sys_utils {
                 ("config-file,c", po::value(&args.config)->value_name("file"s), "set config file path")  //
                 ("www-root,w", po::value(&args.www_root)->value_name("dir"s), "set static files root") //
                 ("state-file", po::value(&args.state_file)->value_name("file"s), "set save file path") //
-                ("save-state-period", po::value(&args.www_root)->value_name("milliseconds"s), "set save period") //
+                ("save-state-period", po::value(&args.save_period)->value_name("milliseconds"s), "set save period") //
                 ("randomize-spawn-points", "spawn dogs at random positions");
 
         po::variables_map vm;
@@ -61,7 +61,10 @@ namespace sys_utils {
         std::cout << "contains: " << vm.contains("state-file") <<std::endl;
         sett->SetSaveStateFlag(vm.contains("state-file"));
 
-        sett->SetSavePeriodFlag(vm.contains("state-file"));
+        sett->SetSavePeriodFlag(vm.contains("save-state-period"));
+        if ( sett->IsSavePeriod() ) {
+            sett->SetSavePeriod(args.save_period);
+        }
 
         return args;
     }

@@ -8,9 +8,11 @@
 #include <iostream>
 #include <atomic>
 #include <memory>
+#include <chrono>
 
 namespace settings {
 
+    using ms = std::chrono::milliseconds;
     class Settings {
     protected:
         Settings() {};
@@ -32,9 +34,13 @@ namespace settings {
 
         bool IsSaveState() const noexcept { return save_state; }
 
-        void SetSavePeriodFlag(const bool _save_period) { save_period = _save_period; }
+        void SetSavePeriodFlag(const bool _save_period) { save_period_flag = _save_period; }
 
-        bool IsSavePeriod() const noexcept { return save_period; }
+        bool IsSavePeriod() const noexcept { return save_period_flag; }
+
+        void SetSavePeriod(const size_t period_ms) { save_period = ms {period_ms};}
+
+        ms GetSavePeriod(const size_t ms) { return save_period; }
 
         void SetTestEnv(const bool _test) { test_environment = _test; }
 
@@ -42,7 +48,8 @@ namespace settings {
         bool randomize_start{true};
         bool test_environment{false};
         bool save_state{false};
-        bool save_period{false};
+        bool save_period_flag{false};
+        std::chrono::milliseconds save_period{0};
 
     };
 
