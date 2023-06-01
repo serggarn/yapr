@@ -33,8 +33,9 @@ private:
 
 class AuthorRepository {
 public:
+    using authors_info = std::vector<std::pair<std::string, std::string>>;
     virtual void Save(const Author& author) = 0;
-    virtual std::vector<std::string> Get() = 0;
+    virtual authors_info Get() = 0;
 
 protected:
     ~AuthorRepository() = default;

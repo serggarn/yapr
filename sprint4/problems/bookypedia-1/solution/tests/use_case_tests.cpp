@@ -12,8 +12,8 @@ struct MockAuthorRepository : domain::AuthorRepository {
     void Save(const domain::Author& author) override {
         saved_authors.emplace_back(author);
     }
-    std::vector<std::string> Get() override {
-        return std::vector<std::string>();
+    authors_info Get() override {
+        return authors_info();
     }
 };
 

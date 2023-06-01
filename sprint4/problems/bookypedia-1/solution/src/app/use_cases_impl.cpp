@@ -18,9 +18,9 @@ void UseCasesImpl::AddBook(const std::string& author_id,
 }
 
 void UseCasesImpl::GetAuthors(std::vector<AuthorInfo>& info_authors) {
-    int i = 1;
+
     for (const auto& author : authors_.Get()) {
-        info_authors.push_back({std::to_string(i++), author});
+        info_authors.push_back({author.first, author.second});
     }
 }
 

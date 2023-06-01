@@ -24,16 +24,16 @@ ON CONFLICT (id) DO UPDATE SET name=$2;
     work.commit();
 }
 
-std::vector<std::string> AuthorRepositoryImpl::Get() {
-    std::vector<std::string> authors;
+AuthorRepositoryImpl::authors_info AuthorRepositoryImpl::Get() {
+    AuthorRepositoryImpl::authors_info authors;
 
     pqxx::read_transaction r{connection_};
     {
-        auto query_text = "SELECT name FROM authors ORDER BY name"_zv;
+        auto query_text = "SELECT id, name FROM authors ORDER BY name"_zv;
 
         // Выполняем запрос и итерируемся по строкам ответа
-        for (auto [name] : r.query<std::string>(query_text)) {
-            authors.push_back(name);
+        for (auto [id, name] : r.query<std::string, std::string>(query_text)) {
+            authors.push_back({id, name});
         }
     }
 //        read.commit();
@@ -61,9 +61,9 @@ BookRepositoryImpl::books_info BookRepositoryImpl::Get(const std::string& autor_
 
     pqxx::read_transaction r{connection_};
     {
-        auto query_text = "SELECT title, publication_year FROM books WHERE author_id = "
+        auto query_text = "SELECT title, publication_year FROM books WHERE author_id = '"
                 + autor_id
-                + " ORDER BY publication_year, title";
+                + "' ORDER BY publication_year, title";
 
         // Выполняем запрос и итерируемся по строкам ответа
         for (auto [title, year] : r.query<std::string, int>(query_text)) {
@@ -100,10 +100,10 @@ CREATE TABLE IF NOT EXISTS authors (
     // ... создать другие таблицы
     work.exec(R"(
 CREATE TABLE IF NOT EXISTS books (
-    id UUID CONSTRAINT author_id_constraint PRIMARY KEY,
+    id UUID CONSTRAINT book_id_constraint PRIMARY KEY,
     author_id UUID references authors(id) NOT NULL,
     title varchar(100) NOT NULL,
-    publication_year  integer NOT NULL,
+    publication_year  integer NOT NULL
 );
 )"_zv);
 

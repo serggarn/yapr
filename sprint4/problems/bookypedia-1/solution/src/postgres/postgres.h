@@ -14,7 +14,7 @@ public:
     }
 
     void Save(const domain::Author& author) override;
-    std::vector<std::string> Get() override;
+    authors_info Get() override;
 private:
     pqxx::connection& connection_;
 };
