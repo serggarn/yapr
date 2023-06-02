@@ -1,12 +1,10 @@
 #include "sdk.h"
-//
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <iostream>
 #include <thread>
 
 #include "json/json_loader.h"
-// #include "api_handler.h"
 #include "request_handler.h"
 #include "file_handler.h"
 #include "logger.h"
@@ -38,11 +36,6 @@ void RunWorkers(unsigned numbers, const Fn& fn) {
 }  // namespace
 
 int main(int argc, const char* argv[]) {
-// 	fs::path base_path{"/this/is/some/path/"s};
-//     fs::path rel_path{"../../another/path"s};
-// 	std::cout << base_path / rel_path <<std::endl;
-//     fs::path abs_path = fs::weakly_canonical(base_path / rel_path);
-//     std::cout << abs_path << std::endl; // Выведет "/this/is/another/path"
     InitLogger();
     try {
         if (auto args = sys_utils::ParseCommandLine(argc, argv)) {
@@ -53,8 +46,6 @@ int main(int argc, const char* argv[]) {
             model::Game game = json_loader::LoadGame(args->config);
             player::Players players{};
 
-//            if ( ! exists(args->www_root) || ! is_directory(args->www_root) )
-//                throw std::runtime_error { "www-root directory not exist"s };
             file_handler::Files files{args->www_root};
 
             // 2. Инициализируем io_context
@@ -76,7 +67,6 @@ int main(int argc, const char* argv[]) {
 
             // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
             http_handler::RequestHandler handler {ioc, game_strand, game, files, players};
-// 		http_handler::RequestHandler handler{game, files};
             http_handler::LoggingRequestHandler<http_handler::RequestHandler> logging_handler{handler};
 
             // Запустим timer
@@ -95,7 +85,6 @@ int main(int argc, const char* argv[]) {
             http_server::ServerHttp(ioc, {address, port}, [&logging_handler](auto &&req, auto &&addr, auto &&send) {
                 logging_handler(std::forward<decltype(req)>(req), std::forward<decltype(addr)>(addr),
                                 std::forward<decltype(send)>(send));
-// 			   handler(std::forward<decltype(req)>(req))));
             });
 
 
@@ -106,7 +95,6 @@ int main(int argc, const char* argv[]) {
                 << logging::add_value(additional_data, data)
                 << "server started"sv;
             // Эта надпись сообщает тестам о том, что сервер запущен и готов обрабатывать запросы
-//         std::cout << "Server has started..."sv << std::endl;
 
             // 6. Запускаем обработку асинхронных операций
             RunWorkers(std::max(1u, num_threads), [&ioc] {

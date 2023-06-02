@@ -37,6 +37,7 @@ protected:
     ~ItemGathererProvider() = default;
 
 public:
+    ItemGathererProvider() = default;
     virtual size_t ItemsCount() const = 0;
     virtual Item GetItem(size_t idx) const = 0;
     virtual size_t GatherersCount() const = 0;

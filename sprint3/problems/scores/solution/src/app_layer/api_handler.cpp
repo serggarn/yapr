@@ -98,8 +98,6 @@ void ApiHandler::LootsToJson(const model::Map &map, json::object &jsn_array) {
         auto point = loot.GetPosition();
         json_object[json_tags::pos] = json::array({point.x, point.y});
         json_object[json_tags::type] = loot.GetType();
-//        json_dict[std::to_string(index)] = json_object;
-//        jsn_array.push_back(json_dict);
         jsn_array[std::to_string(index)] = json_object;
         index++;
     }
@@ -110,7 +108,10 @@ StringResponse ApiHandler::MakeError(const StringRequest& request, const http::s
     json::object answ_obj;
     answ_obj[json_tags::code] = code;
     answ_obj[json_tags::message] = message;
-    std::string answer = request.method() == http::verb::head ? "" : json::serialize(answ_obj);
+    std::string answer = "";
+    if ( request.method() != http::verb::head ) {
+        json::serialize(answ_obj);
+    }
     return MakeStringResponse(status, answer, request.version(), request.keep_alive());
 }
 
@@ -121,7 +122,10 @@ StringResponse ApiHandler::MakeUnallowedMethodError(const StringRequest& request
     std::stringstream smsg;
     smsg << "Only "sv << std::string{allow_method}.c_str() << " method is expected"sv;
     answ_obj[json_tags::message] = smsg.str();
-    std::string answer = request.method() == http::verb::head ? "" : json::serialize(answ_obj);//answer.c_str();
+    std::string answer = "";
+    if ( request.method() != http::verb::head ) {
+        json::serialize(answ_obj);
+    }
     return MakeStringResponse(status, answer, request.version(), request.keep_alive(),
                               ContentType::APPL_JSON, allow_method);
 }
@@ -129,7 +133,10 @@ StringResponse ApiHandler::MakeUnallowedMethodError(const StringRequest& request
 std::optional<Token> ApiHandler::TryExtractToken(const StringRequest& request) {
     auto header = request.base();
     auto auth = header.at(http::field::authorization);
-    if (!auth.starts_with("Bearer") || auth.size() < (32 + 7)) {
+    const size_t token_length = 32;
+    const std::string bearer = "Bearer";
+    size_t length_before_token = bearer.length() + 1;
+    if (!auth.starts_with(bearer) || auth.size() < (token_length + length_before_token)) {
         return std::nullopt;
     }
     auto token_str = std::string{auth.substr(auth.find_first_of(" ") + 1)};
@@ -153,7 +160,10 @@ StringResponse ApiHandler::GetPlayers(const StringRequest& request) {
             auto player_id = std::to_string(*(player.second.GetId()));
             answ_obj[player_id] = player_json;
         }
-        std::string answer = request.method() == http::verb::head ? "" : json::serialize(answ_obj);
+        std::string answer = "";
+        if ( request.method() != http::verb::head ) {
+            json::serialize(answ_obj);
+        }
         return MakeStringResponse(status, answer, request.version(), request.keep_alive());
     });
 }
@@ -204,7 +214,10 @@ StringResponse ApiHandler::GetGameState(const StringRequest& request) {
             LootsToJson(*map, loots_jsn);
             answ_obj[json_tags::lostObjects] = loots_jsn;
         }
-        std::string answer = request.method() == http::verb::head ? "" : json::serialize(answ_obj);
+        std::string answer = "";
+        if ( request.method() != http::verb::head ) {
+            json::serialize(answ_obj);
+        }
         return MakeStringResponse(status, answer, request.version(), request.keep_alive());
     });
 }
@@ -256,7 +269,6 @@ StringResponse ApiHandler::JoinGameUseCase(const StringRequest& request) {
                 } else {
                     auto name = userName.c_str();
                     auto map = game_.FindMap(model::Map::Id{mapId.c_str()});
-//                    auto dog_id = model::Dog::Id{name};
                     std::shared_ptr<gs> game_session{nullptr};
                     // если уже есть сессия, то найдём её
                     if (game_.FindMap(model::Map::Id{mapId.c_str()}) != nullptr) {

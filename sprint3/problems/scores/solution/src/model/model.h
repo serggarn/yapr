@@ -33,11 +33,11 @@ struct Offset {
 
 class Road {
     struct HorizontalTag {
-        explicit HorizontalTag() = default;
+        HorizontalTag() = default;
     };
 
     struct VerticalTag {
-        explicit VerticalTag() = default;
+        VerticalTag() = default;
     };
 
 public:

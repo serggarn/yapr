@@ -7,6 +7,15 @@ namespace model {
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+GameSession::GameSession(Id id, std::shared_ptr<model::Map> map,
+                         model::LootGeneratorConfig config)
+                         : id_ {std::move(id)}
+                         , map_{std::move(map)} {
+    loot_generator  = std::make_shared<LG>(
+    LG::TimeInterval(static_cast<unsigned>(config.period * 1000)),
+    config.probability);
+}
+
 const Point GameSession::GetRandomPointFromRoads() const {
     std::random_device rd;   // non-deterministic generator
     std::mt19937 gen(rd());  // to seed mersenne twister.

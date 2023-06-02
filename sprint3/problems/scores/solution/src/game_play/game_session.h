@@ -16,21 +16,12 @@ namespace model {
 
     class GameSession {
 public:
-// 	using Id = util::Tagged<model::Map, GameSession>;
 	using Id = util::Tagged<std::string, GameSession>;
 	using Dogs = std::vector<std::shared_ptr<model::Dog>>;
     using LG = loot_gen::LootGenerator;
-//    using ms =
-// 	GameSession(Id id, std::string map) 
-	
+
 	GameSession(Id id, std::shared_ptr<model::Map> map,
-                model::LootGeneratorConfig config)
-		: id_ {std::move(id)}
-		, map_{std::move(map)} {
-             loot_generator  = std::make_shared<LG>(
-                     LG::TimeInterval(static_cast<unsigned>(config.period * 1000)),
-                     config.probability);
-		}
+                model::LootGeneratorConfig config);
 	void AddDog(const std::string& dog_name);
 	
     const Id& GetId() const noexcept {
