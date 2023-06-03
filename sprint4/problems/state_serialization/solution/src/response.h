@@ -28,6 +28,3 @@ StringResponse MakeStringResponse(http::status status, std::string_view body, un
 FileResponse MakeFileResponse(http::status status, std::string_view file_name, unsigned http_version, std::string_view content_type);
 
 // } // namespace http_server
-..... ...FFF
-
-{"action":"add_book","payload":{"title":"The Old Man and the Sea'); DROP TABLE books; --","author":"Hemingway","year":1952,"ISBN":"555"}}
