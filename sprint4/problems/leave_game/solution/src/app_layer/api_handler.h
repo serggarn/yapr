@@ -8,6 +8,8 @@
 #include <sstream>
 #include <optional>
 #include "../json/json_tags.h"
+#include "../domain/player_fwd.h"
+#include "../domain/record_fwd.h"
 
 namespace api_handler {
 namespace beast = boost::beast;
@@ -86,7 +88,7 @@ private:
     json::object PlayerStateToJson(const Player& player);
 	std::optional<std::string> MapToStr(std::string_view map_id);
 public:
-	ApiHandler (net::io_context& ioc, model::Game& game, player::Players& players) : ioc_{ioc}, game_{game}, players_{players} {}
+	ApiHandler (net::io_context& ioc, model::Game& game, player::Players& players, postgres::Database& db) : ioc_{ioc}, game_{game}, players_{players}, db_{db} {}
 	template <typename Body, typename Allocator>
     HandlerResult GetResponse(http::request<Body, http::basic_fields<Allocator>>&& req) {
         http::status status;
@@ -130,6 +132,7 @@ private:
     net::io_context& ioc_;
     model::Game& game_;
 	player::Players& players_;
+    postgres::Database& db_;
 };
 
 } // namespace http_handler

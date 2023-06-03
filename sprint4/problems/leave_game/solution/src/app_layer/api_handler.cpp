@@ -220,6 +220,16 @@ StringResponse ApiHandler::SetPlayerAction(const StringRequest& request) {
         auto dog = player->GetDog();
         auto gs = player->GetSession();
         auto speed = gs->GetMap()->GetDogSpeed();
+        std::optional<long> stop_time;
+        std::cout << (! dog->IsStop()) << " ; " << model::is_direction_empty(direction.c_str()) <<std::endl;
+        if ( ! dog->IsStop() && model::is_direction_empty(direction.c_str()) ) {
+            std::cout << "set_time" <<std::endl;
+            stop_time = std::time(0);
+            std::cout << "" << stop_time.value() <<std::endl;
+        }
+        if ( (dog->IsStop()) == (stop_time == std::nullopt) ) {
+            db_.GetPlayers().Update(domain::PlayerId{token}, stop_time);
+        }
         dog->SetMove(speed, direction.c_str());
         std::string answer = json::serialize(answ_obj);
         return  MakeStringResponse(status, answer, request.version(), request.keep_alive());
@@ -234,7 +244,7 @@ StringResponse ApiHandler::SetTick(const StringRequest& request) {
     std::string answer = json::serialize(answ_obj);
     std::cout << "Tick start" << std::endl;
     auto ms = std::chrono::milliseconds(delta);
-    game_.Tick(ms, players_);
+    game_.Tick(ms, players_, db_);
     if ( settings::Settings::GetInstance()->IsSaveState() ) {
         for ( const auto& map : game_.GetMaps() ) {
 //            std::cout <<"03" <<std::endl;
@@ -292,6 +302,7 @@ StringResponse ApiHandler::JoinGameUseCase(const StringRequest& request) {
 //                    model::Dog::Id id(game_session->GetDogs().size());
 //                    auto dg = game_session->FindDog(model::Dog::Id{name});
                     auto token = players_.AddPlayer(dg, game_session);
+                    db_.GetPlayers().Save({domain::PlayerId{token.second}, name, std::time(0)});
                     answ_obj[json_tags::authToken] = *(token.second);
                     answ_obj[json_tags::playerId] = *(token.first);
                     std::string answer = serialize(answ_obj);
@@ -421,12 +432,29 @@ StringResponse ApiHandler::MapsGameUseCase(const StringRequest& request) {
 
 StringResponse ApiHandler::RecordsGameUseCase(const StringRequest& request) {
     std::string answer;
+    const uint start_default = 0;
+    const unsigned long max_item_default = 100;
     switch (request.method()) {
 
         case http::verb::get:
         case http::verb::head: {
-            // TODO
-                    return MakeStringResponse(http::status::ok, answer, request.version(), request.keep_alive());
+            auto jsn_obj = json::parse(request.body()).as_object();
+            auto start = jsn_obj.contains(json_tags::start) ? jsn_obj.at(json_tags::start).as_int64() : start_default;
+            auto max_item = jsn_obj.contains(json_tags::maxItems) ? jsn_obj.at(json_tags::maxItems).as_int64() : max_item_default;
+            max_item = std::min(max_item_default, max_item);
+            auto jsn_res_array = json::array();
+            for (const auto& record : db_.GetRecords().Get(start, max_item) ) {
+                auto jsn_res = json::object();
+                jsn_res[json_tags::name] = record.name;
+                jsn_res[json_tags::score] = record.score;
+                jsn_res[json_tags::playTime] = record.play_time;
+                jsn_res_array.push_back(jsn_res);
+            }
+            std::string answer = "";
+            if ( request.method() != http::verb::head ) {
+                answer = json::serialize(jsn_res_array);
+            }
+            return MakeStringResponse(http::status::ok, answer, request.version(), request.keep_alive());
             break;
         }
         default: {

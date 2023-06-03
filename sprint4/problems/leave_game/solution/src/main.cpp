@@ -14,7 +14,7 @@
 #include "system/settings.h"
 #include "app_layer/ticker.h"
 #include "system/backup.h"
-#include "postgres/postgres.h"
+
 
 
 using namespace std::literals;
@@ -55,7 +55,7 @@ int main(int argc, const char* argv[]) {
 
             // connect to database
             sett->ReadDbConnectionString();
-            postgres::Database db_{pqxx::connection(sett->GetDbConnectionString())};
+            postgres::Database db{pqxx::connection(sett->GetDbConnectionString())};
 
             using ms = std::chrono::milliseconds;
             // Восстановим состояние игры, если есть файл
@@ -86,15 +86,15 @@ std::cout << "restore ok" <<std::endl;
             auto game_strand = net::make_strand(ioc);
 
             // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
-            http_handler::RequestHandler handler {ioc, game_strand, game, files, players};
+            http_handler::RequestHandler handler {ioc, game_strand, game, files, players, db};
             http_handler::LoggingRequestHandler<http_handler::RequestHandler> logging_handler{handler};
 
             std::cout << "IsSaveState(): " << sett->IsSaveState() <<std::endl;
             // Запустим timer
             if ( ! sett->IsTestEnv() ) {
                 auto handle_tick
-                        = [&game, &players](std::chrono::milliseconds _ms) {
-                            game.Tick(_ms, players);
+                        = [&game, &players, &db](std::chrono::milliseconds _ms) {
+                            game.Tick(_ms, players, db);
                             if ( settings::Settings::GetInstance()->IsSaveState() ) {
                                 Backup::GetInstance()->TrySave(_ms, game, players);
                             }

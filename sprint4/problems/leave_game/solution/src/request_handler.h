@@ -68,8 +68,12 @@ private:
 class RequestHandler {
 public:
     using Strand = net::strand<net::io_context::executor_type>;
-    explicit RequestHandler(net::io_context& ioc, Strand& game_strand, model::Game& game, file_handler::Files& files, player::Players& players)
-        : ioc_{ioc}, game_strand_{game_strand}, game_{game}, files_{files}, players_{players} {
+    explicit RequestHandler(net::io_context& ioc,
+                            Strand& game_strand,
+                            model::Game& game,
+                            file_handler::Files& files,
+                            player::Players& players, postgres::Database& db)
+        : ioc_{ioc}, game_strand_{game_strand}, game_{game}, files_{files}, players_{players}, db_{db} {
     }
 
 //     RequestHandler(const RequestHandler&) = delete;
@@ -91,7 +95,7 @@ public:
 
             api_handler::HandlerResult resp;
                     net::dispatch(game_strand_, [this, &req, &resp]() {
-                        api_handler::ApiHandler handler {ioc_, game_, players_};
+                        api_handler::ApiHandler handler {ioc_, game_, players_, db_};
                resp = handler.GetResponse(std::move(req));
             });
 			send(std::move(resp.second));
@@ -148,6 +152,7 @@ private:
     model::Game& game_;
 	file_handler::Files& files_;
 	player::Players& players_;
+    postgres::Database& db_;
 	
 };
 

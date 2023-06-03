@@ -21,10 +21,11 @@ const std::string real_to_string(const T& t) {
 using namespace geom;
 
 enum Direction : uint8_t {
-    North = 0x00,
-    South = 0x01,
-    West  = 0x02,
-    East  = 0x03
+    Empty = 0,
+    North = 1,
+    South = 2,
+    West  = 3,
+    East  = 4
 };
 
 static const std::map<Direction, std::string> direction_to_str {
@@ -32,6 +33,7 @@ static const std::map<Direction, std::string> direction_to_str {
         { South, "D" },
         { West, "L" },
         { East, "R" },
+        { Empty, "" },
 };
 
 static const std::map<std::string, Direction> direction_from_str {
@@ -39,8 +41,12 @@ static const std::map<std::string, Direction> direction_from_str {
         { "D", South },
         { "L", West },
         { "R", East },
+        { "", Empty },
 };
 
+static bool is_direction_empty(const std::string& dir) {
+    return direction_from_str.at(dir) == Empty;
+}
 class Dog {
 public:
     using Id = util::Tagged<uint32_t, Dog>;
@@ -70,6 +76,9 @@ public:
     }
     [[ nodiscard ]] const Vec2D& GetSpeed() const noexcept {
         return speed;
+    }
+    bool IsStop() {
+        return speed == Vec2D{0,0};
     }
     void SetPos(const Point2D& _pos) noexcept {
         pos = _pos;

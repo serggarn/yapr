@@ -5,7 +5,7 @@
 
 #include "../src/model/model.h"
 #include "../src/model/model_serialization.h"
-#include "../src/token.h"
+#include "../src/util/token.h"
 
 //#include "../src/system/backuph.h"
 

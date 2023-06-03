@@ -14,7 +14,7 @@ using RecordId = util::TaggedUUID<detail::RecordTag>;
 
 class Record {
 public:
-    Record(RecordId id, std::string name, size_t score, size_t diff)
+    Record(RecordId id, std::string name, size_t score, double diff)
             : id_(std::move(id))
             , name_(std::move(name))
             , score_(score)
@@ -33,7 +33,7 @@ public:
         return score_;
     }
 
-    const size_t& GetDiff() const noexcept {
+    const double& GetDiff() const noexcept {
         return diff_;
     }
 
@@ -41,16 +41,22 @@ private:
     RecordId id_;
     std::string name_;
     size_t score_;
-    size_t diff_;
+    double diff_;
 
 };
 
+struct record_info {
+    std::string name;
+    uint score;
+    double play_time;
+};
+using records_info = std::vector<record_info>;
+
 class RecordRepository {
 public:
-    using books_info = std::vector<std::pair<std::string, int>>;
     virtual void Save(const Record& record) = 0;
-    virtual books_info Get() = 0;
-    virtual books_info Get(const std::string& autor_id) = 0;
+//    virtual records_info Get() = 0;
+    virtual records_info Get(const uint start, const uint maxItem) = 0;
 
 protected:
     ~RecordRepository() = default;

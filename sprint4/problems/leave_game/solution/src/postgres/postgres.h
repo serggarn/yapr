@@ -3,7 +3,7 @@
 #include <pqxx/transaction>
 
 #include "../domain/player_db.h"
-#include "../domain/record.h"/
+#include "../domain/record.h"
 
 namespace postgres {
 
@@ -14,7 +14,11 @@ public:
     }
 
     void Save(const domain::Player& author) override;
-//    authors_info Get() override;
+    domain::players_info Get() override;
+    domain::players_info Get(const int stop_time) override;
+    void Update(const domain::PlayerId& id, const std::optional<long>& stop_time) override;
+    void Delete(const domain::PlayerId& id) override;
+    //    authors_info Get() override;
 private:
     pqxx::connection& connection_;
 };
@@ -25,9 +29,9 @@ public:
             : connection_{connection} {
     }
 
-    void Save(const domain::Record& book) override;
-    books_info Get() override;
-    books_info Get(const std::string& autor_id) override;
+    void Save(const domain::Record& record) override;
+//    domain::records_info Get() override;
+    domain::records_info Get(const uint start, const uint maxItem) override;
 
 private:
     pqxx::connection& connection_;
@@ -37,18 +41,18 @@ class Database {
 public:
     explicit Database(pqxx::connection connection);
 
-//    AuthorRepositoryImpl& GetAuthors() & {
-//        return authors_;
-//    }
-//
-//    BookRepositoryImpl& GetBooks() & {
-//        return books_;
-//    }
+    PlayerRepositoryImpl& GetPlayers() & {
+        return player_;
+    }
+
+    RecordRepositoryImpl& GetRecords() & {
+        return records_;
+    }
 
 private:
     pqxx::connection connection_;
-//    AuthorRepositoryImpl authors_{connection_};
-//    BookRepositoryImpl books_{connection_};
+    PlayerRepositoryImpl player_{connection_};
+    RecordRepositoryImpl records_{connection_};
 };
 
 }  // namespace postgres

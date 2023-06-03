@@ -3,6 +3,7 @@
 #include "game_session.h"
 #include "../model/loot_generator.h"
 #include "../model/players.h"
+#include "../postgres/postgres.h"
 
 namespace model {
     static constexpr double ms_in_sec = 0.001;
@@ -45,7 +46,7 @@ public:
         return nullptr;
     }
 
-    void Tick(const std::chrono::milliseconds delta, const player::Players& players);
+    void Tick(const std::chrono::milliseconds delta, player::Players& players, postgres::Database& db);
 
     inline void AddLootGeneratorConfig(const LootGeneratorConfig& config) {
         loot_generator_config_ = std::move(config);

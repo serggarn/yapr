@@ -5,6 +5,9 @@ namespace model {
 
         dir = direction_from_str.at(_dir_str);
         switch (dir) {
+            case Empty:
+                speed = Vec2D { 0, 0 };
+                break;
             case North:
                 speed = Vec2D { 0, -_speed };
                 break;

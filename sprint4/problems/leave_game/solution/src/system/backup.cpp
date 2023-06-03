@@ -6,7 +6,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include "../model/model_serialization.h"
-#include "../token.h"
+#include "../util/token.h"
 #include <fstream>
 #include <filesystem>
 #include <memory>

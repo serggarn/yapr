@@ -21,7 +21,7 @@ void Players::AddPlayer(Token token,
     players_.emplace(std::move(token), std::move(player));
 }
 
-std::shared_ptr<Player> Players::FindByToken(const Token &_token) {
+std::shared_ptr<Player> Players::FindByToken(const Token &_token) const {
     if (players_.find(_token) == players_.end())
         return nullptr;
     return std::make_shared<Player>(players_.at(_token));
@@ -32,6 +32,10 @@ std::shared_ptr<Player> Players::GetPlayer(const Player::Id id) const noexcept {
                                [&id](const std::pair<Token, Player>& pl)
                                { return pl.second.GetId() == id;});
     return player == players_.end() ? nullptr : std::make_shared<Player>(player->second);
+}
+
+void Players::DeletePlayer(const Token& token) {
+    players_.erase(token);
 }
 
 }

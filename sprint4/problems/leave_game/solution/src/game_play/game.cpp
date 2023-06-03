@@ -44,7 +44,7 @@ void Game::AddSession(const GameSession& session)
 
 }
 
-void Game::Tick(const std::chrono::milliseconds delta, const player::Players& players) {
+void Game::Tick(const std::chrono::milliseconds delta, player::Players& players, postgres::Database& db) {
     std::cout << "tick" <<std::endl;
     double delta_real = delta.count() * ms_in_sec;
     using namespace collision_detector;
@@ -95,8 +95,9 @@ void Game::Tick(const std::chrono::milliseconds delta, const player::Players& pl
             auto end_pos = geom::Point2D{new_pos.x, new_pos.y};
             gatherers.emplace_back(Gatherer{start_pos, end_pos, player_width});
             dog->SetPos(new_pos);
-            if (speed != new_speed)
+            if (speed != new_speed) {
                 dog->SetSpeed(new_speed);
+            }
         }
 
         auto items = std::vector<Item>();
@@ -132,7 +133,6 @@ void Game::Tick(const std::chrono::milliseconds delta, const player::Players& pl
             //            auto dog = gs->FindDog(model::Dog::Id{event.gatherer_id})
         }
 
-
         // generateloot
         auto loot_generator = gs->GetLootGenerator();
 //        std::cout << "Sizes: " << delta.count() << "; " << map->GetLoots().size() << "; " << gs->GetDogs().size() <<std::endl;
@@ -142,14 +142,28 @@ void Game::Tick(const std::chrono::milliseconds delta, const player::Players& pl
             gs->AddLoot();
         }
     }
-    for ( const auto& map : GetMaps() ) {
-//            std::cout <<"03" <<std::endl;
 
-        // write count of loots on map
-//        oa << map.GetLoots().size();
-        std::cout << "map: " << *map.GetId() << std::endl;
-        auto loots = map.GetLoots();
-        std::cout << "count of loots in map: " << map.GetLoots().size() << "; " << loots.size() << std::endl;
+    // check retired dogs
+    auto curr_time = std::time(0);
+    auto dogs_to_retire = db.GetPlayers().Get(curr_time);
+    std::cout << "count of retired dogs: " << dogs_to_retire.size() <<std::endl;
+    for ( const auto& dog_bd : dogs_to_retire ) {
+        db.GetPlayers().Delete(domain::PlayerId{dog_bd.token});
+        std::shared_ptr<Dog> dog;
+        auto player = players.FindByToken(Token(dog_bd.token));
+        auto dog_id = player->GetDog()->GetId();
+        auto score = player->GetScore();
+        players.DeletePlayer(Token(dog_bd.token));
+        auto diff = difftime(curr_time, dog_bd.playTime);
+        db.GetRecords().Save({domain::RecordId::New(), dog_bd.name, score, diff});
+
+        for (const auto& gs : sessions_) {
+            auto dog_on_map = gs->FindDog(dog_id);
+            if ( dog_on_map != nullptr ) {
+
+            }
+        }
+
     }
         std::cout << "finc Tick end" << std::endl;
 }

@@ -51,6 +51,12 @@ public:
         return nullptr;
     }
 
+    void DeleteDog(const model::Dog::Id& id) {
+        if (auto it = dog_id_to_index_.find(id); it != dog_id_to_index_.end()) {
+            dogs_.erase(dogs_.begin() + it->second);
+            dog_id_to_index_.erase(id);
+        }
+    }
     const std::shared_ptr<loot_gen::LootGenerator>& GetLootGenerator() const noexcept{
         return loot_generator;
     }
