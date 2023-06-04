@@ -176,10 +176,10 @@ jobs:
           pip show pytest
 
 
-#      - name: run tests sprint3 instrumentation
-#        run: |
-#          cd cpp-backend-tests-practicum/scripts/sprint3
-#          ./instrumentation/run.sh
+     - name: run tests sprint3 instrumentation
+       run: |
+         cd cpp-backend-tests-practicum/scripts/sprint3
+         ./instrumentation/run.sh
 
 #      - name: Load map_json binary
 #        uses: actions/download-artifact@v3
