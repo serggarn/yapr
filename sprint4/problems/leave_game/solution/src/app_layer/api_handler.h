@@ -115,7 +115,7 @@ public:
         else if (trg == UriType::URI_TICK) {
             response  = TickGameUseCase(req);
         }
-        else if (trg == UriType::URI_RECORDS) {
+        else if (trg.starts_with(UriType::URI_RECORDS)) {
             response  = RecordsGameUseCase(req);
         }
         else if (trg.starts_with(UriType::URI_MAPS)) {

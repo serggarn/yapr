@@ -189,7 +189,7 @@ StringResponse ApiHandler::GetGameState(const StringRequest& request) {
     return ExecuteAuthorized(request, [this, &request](const Token& token) -> StringResponse {
         json::object answ_obj;
         auto status = http::status::ok;
-        auto player = players_.FindByToken(token);
+//        auto player = players_.FindByToken(token);
         json::object plyrs_jsn;
         auto playrs = players_.GetPlayers();
         for (const auto &plyr: playrs) {
@@ -212,24 +212,35 @@ StringResponse ApiHandler::GetGameState(const StringRequest& request) {
 
 StringResponse ApiHandler::SetPlayerAction(const StringRequest& request) {
     return ExecuteAuthorized(request, [this, &request] (const Token &token) -> StringResponse {
+//        std::cout << "12" <<std::endl;
         auto status = http::status::ok;
+//        std::cout << "13" <<std::endl;
         json::object answ_obj;
+//        std::cout << "14" <<std::endl;
         auto player = players_.FindByToken(token);
+//        std::cout << "52" <<std::endl;
         auto jsn_values = json::parse(request.body());
+//        std::cout << "16" <<std::endl;
         auto direction = jsn_values.as_object().at(json_tags::move).as_string();
+//        std::cout << "17" <<std::endl;
         auto dog = player->GetDog();
+//        std::cout << "18" <<std::endl;
         auto gs = player->GetSession();
+//        std::cout << "19" <<std::endl;
         auto speed = gs->GetMap()->GetDogSpeed();
-        std::optional<long> stop_time;
+        std::optional<std::chrono::milliseconds> stop_time;
         std::cout << (! dog->IsStop()) << " ; " << model::is_direction_empty(direction.c_str()) <<std::endl;
         if ( ! dog->IsStop() && model::is_direction_empty(direction.c_str()) ) {
-            std::cout << "set_time" <<std::endl;
-            stop_time = std::time(0);
-            std::cout << "" << stop_time.value() <<std::endl;
+//            std::cout << "set_time" <<std::endl;
+            stop_time = game_.GetGameTime();
+//            std::cout << "" << stop_time.value().count() <<std::endl;
         }
-        if ( (dog->IsStop()) == (stop_time == std::nullopt) ) {
-            db_.GetPlayers().Update(domain::PlayerId{token}, stop_time);
-        }
+//        if ( (dog->IsStop()) == (stop_time == std::nullopt) ) {
+//        std::cout << "GetGameTime() == nullopt"
+        auto transaction = db_.CreateTransaction();
+        db_.GetPlayers(transaction).Update(domain::PlayerId{token}, stop_time);
+        transaction.commit();
+//        }
         dog->SetMove(speed, direction.c_str());
         std::string answer = json::serialize(answ_obj);
         return  MakeStringResponse(status, answer, request.version(), request.keep_alive());
@@ -302,7 +313,9 @@ StringResponse ApiHandler::JoinGameUseCase(const StringRequest& request) {
 //                    model::Dog::Id id(game_session->GetDogs().size());
 //                    auto dg = game_session->FindDog(model::Dog::Id{name});
                     auto token = players_.AddPlayer(dg, game_session);
-                    db_.GetPlayers().Save({domain::PlayerId{token.second}, name, std::time(0)});
+                    auto transaction = db_.CreateTransaction();
+                    db_.GetPlayers(transaction).Save({domain::PlayerId{token.second}, name, game_.GetGameTime(), game_.GetGameTime()});
+                    transaction.commit();
                     answ_obj[json_tags::authToken] = *(token.second);
                     answ_obj[json_tags::playerId] = *(token.first);
                     std::string answer = serialize(answ_obj);
@@ -438,12 +451,40 @@ StringResponse ApiHandler::RecordsGameUseCase(const StringRequest& request) {
 
         case http::verb::get:
         case http::verb::head: {
-            auto jsn_obj = json::parse(request.body()).as_object();
-            auto start = jsn_obj.contains(json_tags::start) ? jsn_obj.at(json_tags::start).as_int64() : start_default;
-            auto max_item = jsn_obj.contains(json_tags::maxItems) ? jsn_obj.at(json_tags::maxItems).as_int64() : max_item_default;
-            max_item = std::min(max_item_default, max_item);
+            auto target = request.target();
+            auto start = start_default;
+            auto max_item = max_item_default;
+            auto pos_param = target.find("?");
+            if (pos_param != std::string::npos) {
+                auto url_params = target.substr(pos_param);
+                std::map<std::string, int> params;
+                size_t start_pos = 0;
+                size_t pos = start_pos;
+                while (url_params.find_first_of("=", start_pos) != std::string::npos) {
+                    start_pos++;
+                    pos = url_params.find_first_of("=", start_pos);
+                    auto key = url_params.substr(start_pos, pos - start_pos);
+                    start_pos = pos + 1;
+                    pos = url_params.find_first_of("&", start_pos);
+                    auto value = url_params.substr(start_pos, pos - start_pos);
+                    params[std::string{key}] = stoi(std::string{value});
+
+                    start_pos = pos;
+                    std::cout << "key: " << key << "; " << value << "; " << start_pos << "; " << pos << std::endl;
+                }
+                if (params.find(json_tags::start) != params.end()) {
+                    start = params.at(json_tags::start);
+                }
+                if (params.find(json_tags::maxItems) != params.end()) {
+                    max_item = params.at(json_tags::maxItems);
+                }
+                if (max_item > max_item_default) {
+                    return MakeBadRequestError(request);
+                }
+            }
             auto jsn_res_array = json::array();
-            for (const auto& record : db_.GetRecords().Get(start, max_item) ) {
+            auto transaction = db_.CreateTransaction();
+            for (const auto& record : db_.GetRecords(transaction).Get(start, max_item) ) {
                 auto jsn_res = json::object();
                 jsn_res[json_tags::name] = record.name;
                 jsn_res[json_tags::score] = record.score;

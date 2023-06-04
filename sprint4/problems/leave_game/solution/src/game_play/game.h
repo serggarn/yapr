@@ -28,6 +28,9 @@ public:
     const Sessions& GetSessions() const noexcept {
             return sessions_;
     }
+    void SetRetireTime(std::chrono::seconds retired_time) {
+        retired_time_ = retired_time;
+    }
 
     const std::shared_ptr<Map> FindMap(const Map::Id& id) const noexcept {
 //        std::cout <<"FindMap" <<std::endl;
@@ -56,6 +59,8 @@ public:
         return loot_generator_config_;
     }
 
+    const std::chrono::milliseconds GetGameTime() const { return game_time_; }
+
 private:
     using MapIdHasher = util::TaggedHasher<Map::Id>;
     using MapIdToIndex = std::unordered_map<Map::Id, size_t, MapIdHasher>;
@@ -67,6 +72,8 @@ private:
 	Sessions sessions_;
 	SessionIdToIndex session_id_to_index_;
     LootGeneratorConfig loot_generator_config_ {};
+    std::chrono::milliseconds game_time_ {0};
+    std::chrono::seconds retired_time_;
 
 };
 } // namespace model

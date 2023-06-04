@@ -57,7 +57,7 @@ public:
 		, name (std::move(_name))
         , pos(_pos)
         , speed{0, 0}
-        , dir {North} {};
+        , dir {Empty} {};
 
     [[ nodiscard ]] const Id& GetId() const noexcept {
         return id;

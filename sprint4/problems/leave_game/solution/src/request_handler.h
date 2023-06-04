@@ -94,10 +94,24 @@ public:
 		if ( trg.starts_with(UriType::URI_START) ) {
 
             api_handler::HandlerResult resp;
-                    net::dispatch(game_strand_, [this, &req, &resp]() {
-                        api_handler::ApiHandler handler {ioc_, game_, players_, db_};
+
+//            auto handle_result
+//                    = [strand = net::make_strand(io), &orders](sys::error_code ec, int id, Hamburger* h) {
+//                        net::dispatch(strand, [&orders, id, res = OrderResult{ec, ec ? Hamburger{} : *h}] {
+//                            orders.emplace(id, res);
+//                        });
+//                    };
+
+//            net::dispatch(game_strand_, [this, &req, &resp]() {
+//                        api_handler::ApiHandler handler {ioc_, game_, players_, db_};
+//               resp = handler.GetResponse(std::move(req));
+//            });
+            api_handler::ApiHandler handler {ioc_, game_, players_, db_};
+ //           net::dispatch(game_strand_, [&handler, &req, &resp]() {
+//                        api_handler::ApiHandler handler {ioc_, game_, players_, db_};
                resp = handler.GetResponse(std::move(req));
-            });
+   //         });
+
 			send(std::move(resp.second));
 // 								std::cout <<"2"<<std::endl;
 			return std::make_pair(resp.second.result_int(), resp.first);

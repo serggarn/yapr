@@ -54,7 +54,7 @@ namespace json_tags {
     static const std::string value = "value";
     static const std::string score = "score";
     static const std::string dogRetirementTime = "dogRetirementTime";
-    static const std::string playTime = "playTime ";
+    static const std::string playTime = "playTime";
     static const std::string start = "start";
     static const std::string maxItems = "maxItems";
 } // namespace json_tags

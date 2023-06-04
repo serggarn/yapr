@@ -26,7 +26,11 @@ std::shared_ptr<Player> Players::FindByToken(const Token &_token) const {
         return nullptr;
     return std::make_shared<Player>(players_.at(_token));
 }
-
+std::shared_ptr<Player> Players::FindByDogId(const int dog_id) const {
+    auto player = std::find_if(players_.begin(), players_.end(), [&dog_id](const std::pair<Token, Player>& player){
+        return *player.second.GetDog()->GetId() == dog_id;});
+    return player == players_.end() ? nullptr : std::make_shared<Player>(player->second);
+}
 std::shared_ptr<Player> Players::GetPlayer(const Player::Id id) const noexcept {
     auto player = std::find_if(players_.begin(), players_.end(),
                                [&id](const std::pair<Token, Player>& pl)

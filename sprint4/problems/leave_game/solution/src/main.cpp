@@ -104,9 +104,11 @@ std::cout << "restore ok" <<std::endl;
             // 5. Запустить обработчик HTTP-запросов, делегируя их обработчику запросов
             const auto address = net::ip::make_address("0.0.0.0");
             constexpr net::ip::port_type port = 8080;
-            http_server::ServerHttp(ioc, {address, port}, [&logging_handler](auto &&req, auto &&addr, auto &&send) {
-                logging_handler(std::forward<decltype(req)>(req), std::forward<decltype(addr)>(addr),
-                                std::forward<decltype(send)>(send));
+            http_server::ServerHttp(ioc, {address, port}, [&logging_handler, &ioc](auto &&req, auto &&addr, auto &&send) {
+                net::dispatch(net::make_strand(ioc), [&logging_handler, &req, &addr, &send/*, &resp*/]() {
+                    logging_handler(std::forward<decltype(req)>(req), std::forward<decltype(addr)>(addr),
+                                    std::forward<decltype(send)>(send));
+                });
             });
 
 

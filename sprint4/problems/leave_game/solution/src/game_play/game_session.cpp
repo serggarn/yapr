@@ -36,28 +36,19 @@ const Point GameSession::GetStartPointFromFirstRoad() const {
 Dog::DogPtr GameSession::AddDog(const std::string& dog_name)
 {
     auto sett = settings::Settings::GetInstance();
-    std::cout << "randomiz? " << sett->IsRandomStart() << "; test_env" << sett->IsTestEnv() <<std::endl;
     auto point = sett->IsRandomStart() ? GetRandomPointFromRoads() : GetStartPointFromFirstRoad();
 //    settings::randomize_start = true;
-    std::cout << " point ok: " << point.x << "; " << point.y << std::endl;
     Point2D crd{ static_cast<CoordReal>(point.x), static_cast<CoordReal>(point.y)};
-    std::cout << " crd ok" << std::endl;
     model::Dog::Id id(dogs_.size());
     auto dog = std::make_shared<Dog>(id, dog_name, crd);
-    std::cout << " dog_ ok" << std::endl;
     const size_t index = dogs_.size();
-    std::cout << "dogs_.size(): " <<dogs_.size() <<std::endl;
-    std::cout << " index ok" << std::endl;
     if (auto [it, inserted] = dog_id_to_index_.emplace(dog->GetId(), index); !inserted) {
-        std::cout << "dog_id_to_index_ not inserted" << std::endl;
         throw std::invalid_argument("Session with id "s + std::to_string(*dog->GetId()) + " already exists"s);
     } else {
         try {
             dogs_.emplace_back(std::move(dog));
-            std::cout<< "emplace_back ok " << dogs_.size() << std::endl;
 
         } catch (...) {
-            std::cout << "catch" << std::endl;
 
             dog_id_to_index_.erase(it);
             throw;

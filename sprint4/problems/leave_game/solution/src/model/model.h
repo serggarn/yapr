@@ -177,12 +177,11 @@ public:
     using Loots = std::vector<Loot>;
     using LootsDefinitions = std::vector<LootDefinition>;
 
-    Map(Id id, std::string name, double dogSpeed, size_t bagCapacity, std::chrono::seconds dog_ret_time) noexcept
+    Map(Id id, std::string name, double dogSpeed, size_t bagCapacity) noexcept
         : id_(std::move(id))
         , name_(std::move(name))
         , dogSpeed_(std::move(dogSpeed))
-        , bagCapacity_(std::move(bagCapacity))
-        , dog_ret_time_(std::move(dog_ret_time)) {
+        , bagCapacity_(std::move(bagCapacity)) {
     }
 
     const Id& GetId() const noexcept {
@@ -254,7 +253,6 @@ private:
     Loots loots_;
     LootsDefinitions loots_definitions_;
     size_t bagCapacity_;
-    std::chrono::seconds dog_ret_time_;
 };
 
 

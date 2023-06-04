@@ -24,10 +24,10 @@ model::Game LoadGame(const std::filesystem::path& json_path) {
                 : model::Game::default_bag_capacity;
     auto dog_ret_time = jsn_obj.contains(json_tags::dogRetirementTime)
                 ? jsn_obj.at(json_tags::dogRetirementTime).as_double() : model::Game::default_dog_retirement_time;
+    game.SetRetireTime(std::chrono::seconds(static_cast<long>(dog_ret_time)));
 	auto jsn_maps = jsn_obj.at(json_tags::maps).as_array();
 	for ( auto const& jsn_map : jsn_maps ) {
-		auto map = LoadMap(jsn_map, default_dog_speed, default_bag_capacity,
-                           std::chrono::seconds(static_cast<long>(dog_ret_time)));
+		auto map = LoadMap(jsn_map, default_dog_speed, default_bag_capacity);
 		
 		// Добавим дороги
 		auto roads = jsn_map.as_object().at(json_tags::roads).as_array();
@@ -78,8 +78,7 @@ std::stringstream LoadFile(const std::filesystem::path& json_path) {
 
 model::Map LoadMap(const json::value& jsn_value,
                    const double& default_dog_speed,
-                   const size_t& default_bag_capacity,
-                   const std::chrono::seconds default_dog_retirement_time) {
+                   const size_t& default_bag_capacity) {
     using namespace json_tags;
     auto jsn_obj = jsn_value.as_object();
     auto dg_spd = jsn_obj.contains(dogSpeed) ?
@@ -89,7 +88,7 @@ model::Map LoadMap(const json::value& jsn_value,
 	auto jsn_id = jsn_obj.at(id).as_string().c_str();
 	auto jsn_name = jsn_obj.at(name).as_string().c_str();
 
-	return { model::Map{ model::Map::Id{jsn_id}, jsn_name, dg_spd, bag_capacity, default_dog_retirement_time } };
+	return { model::Map{ model::Map::Id{jsn_id}, jsn_name, dg_spd, bag_capacity} };
 }
 
 model::Road LoadRoad(const json::value& jsn_value) {

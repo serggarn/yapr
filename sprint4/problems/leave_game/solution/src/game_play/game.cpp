@@ -1,6 +1,7 @@
 #include "game.h"
 #include <cmath>
 #include "../collision/collision_detector.h"
+#include "../system/settings.h"
 
 using namespace std::literals;
 
@@ -45,18 +46,21 @@ void Game::AddSession(const GameSession& session)
 }
 
 void Game::Tick(const std::chrono::milliseconds delta, player::Players& players, postgres::Database& db) {
+    game_time_ += delta;
     std::cout << "tick" <<std::endl;
     double delta_real = delta.count() * ms_in_sec;
     using namespace collision_detector;
     auto gatherers = std::vector<Gatherer>();
     for (auto& gs : sessions_ ) {
         auto map = gs->GetMap();
-        for (auto &dog: gs->GetDogs()) {
-            auto pos = dog->GetPos();
-            auto speed = dog->GetSpeed();
+        for (const auto &dog: gs->GetDogs()) {
+            auto dog_in_players = players.FindByDogId(*dog->GetId())->GetDog();
+            auto pos = dog_in_players->GetPos();
+            auto speed = dog_in_players->GetSpeed();
             Vec2D new_speed = speed;
+            std::cout << "delta " << delta_real << "; " << speed.x<< "; " << speed.y<<"; " << (speed.x * delta_real) << "; " << (speed.y * delta_real)  <<std::endl;
             auto new_pos = Point2D{pos.x + (speed.x * delta_real), pos.y + (speed.y * delta_real)};
-
+            std::cout << "new pos calc " << new_pos.x << "; " << new_pos.y <<std::endl;
             // check new pos
             auto roads = map->GetRoadsByCoord(
                     Point{static_cast<int>(std::round(pos.x)), static_cast<int>(std::round(pos.y))});
@@ -94,9 +98,10 @@ void Game::Tick(const std::chrono::milliseconds delta, player::Players& players,
             auto start_pos = geom::Point2D{pos.x, pos.y};
             auto end_pos = geom::Point2D{new_pos.x, new_pos.y};
             gatherers.emplace_back(Gatherer{start_pos, end_pos, player_width});
-            dog->SetPos(new_pos);
+            std::cout << "new pos " << new_pos.x << "; " << new_pos.y <<std::endl;
+            dog_in_players->SetPos(new_pos);
             if (speed != new_speed) {
-                dog->SetSpeed(new_speed);
+                dog_in_players->SetSpeed(new_speed);
             }
         }
 
@@ -144,18 +149,32 @@ void Game::Tick(const std::chrono::milliseconds delta, player::Players& players,
     }
 
     // check retired dogs
-    auto curr_time = std::time(0);
-    auto dogs_to_retire = db.GetPlayers().Get(curr_time);
+    auto sett = settings::Settings::GetInstance();
+    auto curr_time = game_time_ - retired_time_;
+    auto transaction = db.CreateTransaction();
+    auto dogs_to_retire = db.GetPlayers(transaction).Get(curr_time.count());
     std::cout << "count of retired dogs: " << dogs_to_retire.size() <<std::endl;
     for ( const auto& dog_bd : dogs_to_retire ) {
-        db.GetPlayers().Delete(domain::PlayerId{dog_bd.token});
+//        std::cout << "1" <<std::endl;
+        std::cout << "2" <<std::endl;
+        db.GetPlayers(transaction).Delete(domain::PlayerId{dog_bd.token});
         std::shared_ptr<Dog> dog;
+        std::cout << "3 " << dog_bd.token << std::endl;
         auto player = players.FindByToken(Token(dog_bd.token));
+        if (player == nullptr)
+            continue;
+        std::cout << "4 " << (player == nullptr) << std::endl;
         auto dog_id = player->GetDog()->GetId();
+        std::cout << "5" <<std::endl;
         auto score = player->GetScore();
+        std::cout << "6" <<std::endl;
         players.DeletePlayer(Token(dog_bd.token));
-        auto diff = difftime(curr_time, dog_bd.playTime);
-        db.GetRecords().Save({domain::RecordId::New(), dog_bd.name, score, diff});
+        std::cout << "7" <<std::endl;
+        double diff = (game_time_.count() - dog_bd.playTime) / 1000;
+        std::cout << "times: " << game_time_.count()<< "; " << dog_bd.playTime << "; " << diff <<std::endl;
+
+        db.GetRecords(transaction).Save({domain::RecordId::New(), dog_bd.name, score, diff});
+
 
         for (const auto& gs : sessions_) {
             auto dog_on_map = gs->FindDog(dog_id);
@@ -165,7 +184,8 @@ void Game::Tick(const std::chrono::milliseconds delta, player::Players& players,
         }
 
     }
-        std::cout << "finc Tick end" << std::endl;
+    transaction.commit();
+//        std::cout << "finc Tick end" << std::endl;
 }
 
 } //namespace model

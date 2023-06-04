@@ -17,11 +17,12 @@ using PlayerId = util::Tagged<std::string, detail::TokenTag>;
 
 class Player {
 public:
-    Player(PlayerId id, /*std::string token,*/ std::string name, std::time_t join_time)
+    Player(PlayerId id, /*std::string token,*/ std::string name, std::chrono::milliseconds join_time, std::chrono::milliseconds stop_time)
         : id_(std::move(id))
 //        , token_(token)
         , name_(std::move(name))
-        , join_time_(join_time) {
+        , join_time_(join_time)
+        , stop_time_(stop_time) {
     }
 
     const PlayerId& GetId() const noexcept {
@@ -32,11 +33,11 @@ public:
         return name_;
     }
 
-    const std::time_t& GetJoinTime() const noexcept {
+    const std::chrono::milliseconds& GetJoinTime() const noexcept {
         return join_time_;
     }
 
-    const std::time_t& GetStopTime() const noexcept {
+    const std::chrono::milliseconds& GetStopTime() const noexcept {
         return stop_time_;
     }
 
@@ -44,15 +45,15 @@ public:
 //        return token_;
 //    }
 
-    void SetStopTime(const time_t stop_time) {
+    void SetStopTime(const std::chrono::milliseconds stop_time) {
         stop_time_ = stop_time;
     }
 
 private:
     PlayerId id_;
     std::string name_;
-    std::time_t join_time_;
-    std::time_t stop_time_;
+    std::chrono::milliseconds join_time_;
+    std::chrono::milliseconds stop_time_;
 //    std::string token_;
 };
 
@@ -70,8 +71,14 @@ public:
     virtual void Save(const Player& player) = 0;
     virtual players_info Get() = 0;
     virtual players_info Get(const int stop_time) = 0;
-    virtual void Update(const domain::PlayerId& id, const std::optional<long>& stop_time) = 0;
+    virtual void Update(const domain::PlayerId& id, const std::optional<std::chrono::milliseconds>& stop_time) = 0;
     virtual void Delete(const domain::PlayerId& id) = 0;
+
+//    virtual void Save(const Player& player) = 0;
+//    virtual players_info Get() = 0;
+//    virtual players_info Get(const int stop_time) = 0;
+//    virtual void Update(const domain::PlayerId& id, const std::optional<std::chrono::milliseconds>& stop_time) = 0;
+//    virtual void Delete(const domain::PlayerId& id) = 0;
 
 protected:
     ~PlayerRepository() = default;
