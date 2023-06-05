@@ -22,11 +22,6 @@ namespace sinks = boost::log::sinks;
 BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "TimeStamp", boost::posix_time::ptime)
 BOOST_LOG_ATTRIBUTE_KEYWORD(additional_data, "AdditionalData", json::value)
 
-// void InitBoostLogFilter() {
-//     logging::core::get()->set_filter(
-//         logging::trivial::severity >= logging::trivial::info
-//     );
-// } 
 
 void InitLogger();
 

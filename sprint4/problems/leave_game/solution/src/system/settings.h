@@ -2,8 +2,7 @@
 // Created by serg on 01.05.23.
 //
 
-#ifndef GAME_SERVER_SETTINGS_H
-#define GAME_SERVER_SETTINGS_H
+#pragma once
 
 #include <iostream>
 #include <atomic>
@@ -65,5 +64,3 @@ namespace settings {
 
 
 } // namespace settings
-
-#endif //GAME_SERVER_SETTINGS_H

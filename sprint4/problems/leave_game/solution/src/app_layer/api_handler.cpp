@@ -99,8 +99,6 @@ void ApiHandler::LootsToJson(const model::Map &map, json::object &jsn_array) {
         auto point = loot.GetPosition();
         json_object[json_tags::pos] = json::array({point.x, point.y});
         json_object[json_tags::type] = loot.GetType();
-//        json_dict[std::to_string(index)] = json_object;
-//        jsn_array.push_back(json_dict);
         jsn_array[std::to_string(index)] = json_object;
         index++;
     }
@@ -189,7 +187,6 @@ StringResponse ApiHandler::GetGameState(const StringRequest& request) {
     return ExecuteAuthorized(request, [this, &request](const Token& token) -> StringResponse {
         json::object answ_obj;
         auto status = http::status::ok;
-//        auto player = players_.FindByToken(token);
         json::object plyrs_jsn;
         auto playrs = players_.GetPlayers();
         for (const auto &plyr: playrs) {
@@ -212,35 +209,22 @@ StringResponse ApiHandler::GetGameState(const StringRequest& request) {
 
 StringResponse ApiHandler::SetPlayerAction(const StringRequest& request) {
     return ExecuteAuthorized(request, [this, &request] (const Token &token) -> StringResponse {
-//        std::cout << "12" <<std::endl;
         auto status = http::status::ok;
-//        std::cout << "13" <<std::endl;
         json::object answ_obj;
-//        std::cout << "14" <<std::endl;
         auto player = players_.FindByToken(token);
-//        std::cout << "52" <<std::endl;
         auto jsn_values = json::parse(request.body());
-//        std::cout << "16" <<std::endl;
         auto direction = jsn_values.as_object().at(json_tags::move).as_string();
-//        std::cout << "17" <<std::endl;
         auto dog = player->GetDog();
-//        std::cout << "18" <<std::endl;
         auto gs = player->GetSession();
-//        std::cout << "19" <<std::endl;
         auto speed = gs->GetMap()->GetDogSpeed();
         std::optional<std::chrono::milliseconds> stop_time;
         std::cout << (! dog->IsStop()) << " ; " << model::is_direction_empty(direction.c_str()) <<std::endl;
         if ( ! dog->IsStop() && model::is_direction_empty(direction.c_str()) ) {
-//            std::cout << "set_time" <<std::endl;
             stop_time = game_.GetGameTime();
-//            std::cout << "" << stop_time.value().count() <<std::endl;
         }
-//        if ( (dog->IsStop()) == (stop_time == std::nullopt) ) {
-//        std::cout << "GetGameTime() == nullopt"
         auto transaction = db_.CreateTransaction();
         db_.GetPlayers(transaction).Update(domain::PlayerId{token}, stop_time);
         transaction.commit();
-//        }
         dog->SetMove(speed, direction.c_str());
         std::string answer = json::serialize(answ_obj);
         return  MakeStringResponse(status, answer, request.version(), request.keep_alive());
@@ -258,10 +242,8 @@ StringResponse ApiHandler::SetTick(const StringRequest& request) {
     game_.Tick(ms, players_, db_);
     if ( settings::Settings::GetInstance()->IsSaveState() ) {
         for ( const auto& map : game_.GetMaps() ) {
-//            std::cout <<"03" <<std::endl;
 
             // write count of loots on map
-//            oa << map.GetLoots().size();
             std::cout << "map: " << *map.GetId() << std::endl;
             auto loots = map.GetLoots();
             std::cout << "count of loots in map: " << map.GetLoots().size() << "; " << loots.size() << std::endl;
@@ -293,7 +275,6 @@ StringResponse ApiHandler::JoinGameUseCase(const StringRequest& request) {
                 } else {
                     auto name = userName.c_str();
                     auto map = game_.FindMap(model::Map::Id{mapId.c_str()});
-//                    auto dog_id = model::Dog::Id{name};
                     std::shared_ptr<gs> game_session{nullptr};
                     // если уже есть сессия, то найдём её
                     if (game_.FindMap(model::Map::Id{mapId.c_str()}) != nullptr) {
@@ -310,8 +291,6 @@ StringResponse ApiHandler::JoinGameUseCase(const StringRequest& request) {
                         game_session = game_.FindGameSession(gs::Id{mapId.c_str()});
                     }
                     auto dg = game_session->AddDog(name);
-//                    model::Dog::Id id(game_session->GetDogs().size());
-//                    auto dg = game_session->FindDog(model::Dog::Id{name});
                     auto token = players_.AddPlayer(dg, game_session);
                     auto transaction = db_.CreateTransaction();
                     db_.GetPlayers(transaction).Save({domain::PlayerId{token.second}, name, game_.GetGameTime(), game_.GetGameTime()});
@@ -446,7 +425,7 @@ StringResponse ApiHandler::MapsGameUseCase(const StringRequest& request) {
 StringResponse ApiHandler::RecordsGameUseCase(const StringRequest& request) {
     std::string answer;
     const uint start_default = 0;
-    const unsigned long max_item_default = 100;
+    const uint64_t max_item_default = 100;
     switch (request.method()) {
 
         case http::verb::get:

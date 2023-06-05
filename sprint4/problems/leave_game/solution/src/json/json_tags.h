@@ -1,10 +1,7 @@
 //
 // Created by serg on 03.05.23.
 //
-
-#ifndef GAME_SERVER_JSON_NAMES_H
-#define GAME_SERVER_JSON_NAMES_H
-
+#pragma once
 #include <iostream>
 
 namespace json_tags {
@@ -58,4 +55,3 @@ namespace json_tags {
     static const std::string start = "start";
     static const std::string maxItems = "maxItems";
 } // namespace json_tags
-#endif //GAME_SERVER_JSON_NAMES_H

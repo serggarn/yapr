@@ -39,12 +39,6 @@ void Map::AddRoad(const Road& road) {
         auto hr = vert_roads_.find(rd->GetStart().x);
         hr->second.emplace(std::min(rd->GetStart().y, rd->GetEnd().y), rd);
     }
-//    if ( rd->IsHorizontal())
-//        std::cout << "AddRoad after edding: " << hor_roads_.at(rd->GetStart().y).size() <<std::endl;
-//    else
-//        std::cout << "AddRoad after edding: " << vert_roads_.at(rd->GetStart().x).size() <<std::endl;
-
-//    PrintVHRoads();
 }
 
 /**
@@ -54,12 +48,9 @@ void Map::AddRoad(const Road& road) {
  */
 const std::pair <std::shared_ptr<Road>, std::shared_ptr<Road>> Map::GetRoadsByCoord(const Point& pos) const {
     auto res = std::make_pair<std::shared_ptr<Road>, std::shared_ptr<Road>> (nullptr, nullptr);
-//    std::cout << "GetRoadsByCoord: " << pos.x <<" : " << pos.y <<std::endl;
-//    std::cout << "Sizes: " << vert_roads_.size() <<" : " << hor_roads_.size() <<std::endl;
 
     if ( vert_roads_.contains(pos.x)) {
         auto rds = vert_roads_.at(pos.x);
-//        std::cout << "vert contains " << rds.size() <<std::endl;
         for (const auto& rd : rds ) {
             auto x_left = rd.first;
             auto x_right = std::max(rd.second->GetStart().y, rd.second->GetEnd().y);
@@ -71,10 +62,8 @@ const std::pair <std::shared_ptr<Road>, std::shared_ptr<Road>> Map::GetRoadsByCo
     }
     if ( hor_roads_.contains(pos.y)) {
         auto rds = hor_roads_.at(pos.y);
-//        std::cout << "hor contains " << rds.size() << std::endl;
         for (const auto& rd : rds ) {
             auto y_up = rd.first;
-//            std::cout << "y_up: " << y_up << "; pos.y: " <<pos.y <<std::endl;
             auto y_down = std::max(rd.second->GetStart().x, rd.second->GetEnd().x);
             if (pos.y < y_up)
                 break;
@@ -87,22 +76,20 @@ const std::pair <std::shared_ptr<Road>, std::shared_ptr<Road>> Map::GetRoadsByCo
 }
 
 bool Road::CheckPoint(const Point& point) const noexcept {
-//    std::cout << "CheckPoint: " <<std::min(start_.x, end_.x)  << "<=" << point.x << " && " << point.x << "<=" << std::max(start_.x, end_.x)
-//              << " && " << std::min(start_.y, end_.y) << "<=" << point.y << " && " << point.y << "<=" << std::max(start_.y, end_.y) <<std::endl;
     return std::min(start_.x, end_.x) <= point.x && point.x <= std::max(start_.x, end_.x)
            && std::min(start_.y, end_.y) <= point.y && point.y <= std::max(start_.y, end_.y);
 }
 
 bool Road::CheckPoint(const Point2D& point) const noexcept {
-//    std::cout << "CheckPoint: " <<std::min(start_.x, end_.x)  << "<=" << point.x << " && " << point.x << "<=" << std::max(start_.x, end_.x)
-//              << " && " << std::min(start_.y, end_.y) << "<=" << point.y << " && " << point.y << "<=" << std::max(start_.y, end_.y) <<std::endl;
     if ( IsHorizontal() ) {
-        return std::min(start_.x, end_.x) <= point.x && point.x <= std::max(start_.x, end_.x)
-               && std::min(start_.y, end_.y) - HALF_WIDTH <= point.y && point.y <= std::max(start_.y, end_.y) + HALF_WIDTH;
+        bool x_inside = std::min(start_.x, end_.x) <= point.x && point.x <= std::max(start_.x, end_.x);
+        bool y_inside = std::min(start_.y, end_.y) - HALF_WIDTH <= point.y && point.y <= std::max(start_.y, end_.y) + HALF_WIDTH;
+        return x_inside && y_inside;
     }
     else {
-        return std::min(start_.x, end_.x) - HALF_WIDTH <= point.x && point.x <= std::max(start_.x, end_.x) + HALF_WIDTH
-               && std::min(start_.y, end_.y) <= point.y && point.y <= std::max(start_.y, end_.y);
+        bool x_inside = std::min(start_.x, end_.x) - HALF_WIDTH <= point.x && point.x <= std::max(start_.x, end_.x) + HALF_WIDTH;
+        bool y_inside = std::min(start_.y, end_.y) <= point.y && point.y <= std::max(start_.y, end_.y);
+        return x_inside && y_inside;
     }
 }
 

@@ -1,8 +1,7 @@
 /** Thanks arthurafarias from github
  * 
  * */
-#ifndef ENCODE_H_
-#define ENCODE_H_
+#pragma once
 #include <regex>
 
 std::string decodeURIComponent(std::string_view encoded) {
@@ -53,5 +52,3 @@ std::string encodeURIComponent(std::string_view decoded)
     }
     return oss.str();
 }
-
-#endif

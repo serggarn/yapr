@@ -55,7 +55,6 @@ using records_info = std::vector<record_info>;
 class RecordRepository {
 public:
     virtual void Save(const Record& record) = 0;
-//    virtual records_info Get() = 0;
     virtual records_info Get(const uint start, const uint maxItem) = 0;
 
 protected:

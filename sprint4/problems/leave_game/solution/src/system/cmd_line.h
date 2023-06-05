@@ -2,8 +2,7 @@
 // Created by serg on 01.05.23.
 //
 
-#ifndef GAME_SERVER_CMD_LINE_H
-#define GAME_SERVER_CMD_LINE_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -31,5 +30,3 @@ void SetTestEnv(const bool);
 [[nodiscard]] std::optional<Args> ParseCommandLine(int argc, const char* argv[]);
 
 } // namespace sys_utils
-
-#endif //GAME_SERVER_CMD_LINE_H

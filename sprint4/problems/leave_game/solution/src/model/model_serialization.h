@@ -19,18 +19,6 @@ void serialize(Archive& ar, Vec2D& vec, [[maybe_unused]] const unsigned version)
 
 }  // namespace geom
 
-//namespace model {
-//
-//template <typename Archive>
-//void serialize(Archive& ar, Loot& obj, [[maybe_unused]] const unsigned version) {
-//    ar&(*obj.GetId());
-//    ar&(obj.GetType());
-//    ar&(obj.GetPosition());
-//    ar&(obj.GetValue());
-//}
-
-//}  // namespace model
-
 namespace serialization {
 
 class LootRepr {
@@ -79,12 +67,6 @@ public:
         model::Dog dog{id_, name_, pos_};
         dog.SetSpeed(speed_);
         dog.SetDir(direction_);
-//        dog.AddScore(score_);
-//        for (const auto& item : bag_content_) {
-//            if (!dog.PutToBag(item)) {
-//                throw std::runtime_error("Failed to put bag content");
-//            }
-//        }
         return dog;
     }
 
@@ -106,7 +88,7 @@ private:
 };
 
 /* Другие классы модели сериализуются и десериализуются похожим образом */
-// DogRepr (DogRepresentation) - сериализованное представление класса Dog
+// PlayerRepr (PlayerRepresentation) - сериализованное представление класса Player
 class PlayerRepr {
 public:
     PlayerRepr() = default;
@@ -114,7 +96,6 @@ public:
     explicit PlayerRepr(const Player& player)
             : id_{player.GetId()}
             , dog_{DogRepr(*player.GetDog())}
-//            , session_{*player.GetSession()}
             , loots_{player.GetLoots()}
             , score_{player.GetScore()}{
     }
@@ -123,13 +104,9 @@ public:
         Player player{id_,
                       std::make_shared<model::Dog>(dog_.Restore()),
                               nullptr};
-//                      std::make_shared<model::GameSession>(session_)};
         player.AddScore(score_);
         for (const auto& item : loots_) {
             player.AddLoot(item);
-//            if (!player.AddLoot(item)) {
-//                throw std::runtime_error("Failed to put bag content");
-//            }
         }
         return player;
     }
@@ -138,7 +115,6 @@ public:
     void serialize(Archive& ar, [[maybe_unused]] const unsigned version) {
         ar&* id_;
         ar& dog_;
-//        ar& session_;
         ar& loots_;
         ar& score_;
     }
@@ -146,7 +122,6 @@ public:
 private:
     Player::Id id_ = Player::Id{0u};
     DogRepr dog_;
-//    model::GameSession session_;
     Player::Loots loots_;
     size_t score_ = 0;
 };

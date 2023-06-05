@@ -9,9 +9,6 @@ namespace postgres {
 
 class PlayerRepositoryImpl : public domain::PlayerRepository {
 public:
-//    explicit PlayerRepositoryImpl(pqxx::connection& connection)
-//        : connection_{connection} {
-//    }
     explicit PlayerRepositoryImpl(pqxx::work& work)
         : work_{work} {
     }
@@ -23,26 +20,19 @@ public:
     void Update(const domain::PlayerId& id, const std::optional<std::chrono::milliseconds>& stop_time) override;
     void Delete(const domain::PlayerId& id) override;
 
-    //    authors_info Get() override;
 private:
-//    pqxx::connection& connection_;
     pqxx::work& work_;
 };
 
 class RecordRepositoryImpl : public domain::RecordRepository {
 public:
-//    explicit RecordRepositoryImpl(pqxx::connection& connection)
-//            : connection_{connection} {
-//    }
     explicit RecordRepositoryImpl(pqxx::work& work)
     : work_{work} {
     }
     void Save(const domain::Record& record) override;
-//    domain::records_info Get() override;
     domain::records_info Get(const uint start, const uint maxItem) override;
 
 private:
-//    pqxx::connection& connection_;
     pqxx::work& work_;
 };
 
@@ -53,13 +43,6 @@ public:
     pqxx::work CreateTransaction() {
         return pqxx::work(connection_);
     }
-//    PlayerRepositoryImpl& GetPlayers() & {
-//        return player_;
-//    }
-//
-//    RecordRepositoryImpl& GetRecords() & {
-//        return records_;
-//    }
     PlayerRepositoryImpl GetPlayers(pqxx::work& work) & {
         return PlayerRepositoryImpl{work};
     }
@@ -70,11 +53,6 @@ public:
 
 private:
     pqxx::connection connection_;
-//    PlayerRepositoryImpl player_{connection_};
-//    PlayerRepositoryImpl player_{work_};
-//    RecordRepositoryImpl records_{connection_};
-//    RecordRepositoryImpl records_{work_};
-//    pqxx::work work_;
 };
 
 class DBConntrol {

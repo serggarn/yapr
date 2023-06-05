@@ -6,8 +6,6 @@
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-// #include "request_handler.h"
-// #include "api_handler.h"
 #include "logger.h"
 
 namespace http_server {
@@ -25,9 +23,6 @@ namespace http = beast::http;
 using HttpRequest = http::request<http::string_body>;
 typedef std::pair<HttpRequest, std::string> MyRequest;
 
-// static void ReportError(beast::error_code ec, std::string_view what) {
-//     std::cerr << what << ": "sv << ec.message() << std::endl;
-// }
 
 void LogError(beast::error_code ec, std::string_view where);
 
@@ -83,7 +78,7 @@ private:
 
 template <typename RequestHandler>
 class Session : public SessionBase, public std::enable_shared_from_this<Session<RequestHandler>> {
-	public:
+public:
     template <typename Handler>
     Session(tcp::socket&& socket, Handler&& request_handler)
         : SessionBase(std::move(socket))
@@ -97,7 +92,6 @@ private:
     }
     
     void HandleRequest(HttpRequest&& request) override {
-// 		std::cout << GetRemoteIp().address().to_string()<<std::endl;
         // Захватываем умный указатель на текущий объект Session в лямбде,
         // чтобы продлить время жизни сессии до вызова лямбды.
         // Используется generic-лямбда функция, способная принять response произвольного типа
@@ -109,7 +103,7 @@ private:
 
 template <typename RequestHandler>
 class Listener : public std::enable_shared_from_this<Listener<RequestHandler>> {
-    public:
+public:
     template <typename Handler>
     Listener (net::io_context& ioc, const tcp::endpoint& endpoint, Handler&& request_handler)
         : ioc_(ioc)

@@ -2,8 +2,7 @@
 // Created by serg on 20.05.23.
 //
 
-#ifndef GAME_SERVER_LOOTDEFINITION_H
-#define GAME_SERVER_LOOTDEFINITION_H
+#pragma once
 #include <boost/json.hpp>
 
 namespace json = boost::json;
@@ -18,6 +17,3 @@ public:
 private:
     json::object defenition_;
 };
-
-
-#endif //GAME_SERVER_LOOTDEFINITION_H
